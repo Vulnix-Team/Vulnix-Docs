@@ -14,7 +14,9 @@ export function baseOptions(): BaseLayoutProps {
           style={{ width: "96px", height: "auto" }}
         />
       ),
-      url: "/",
+      // The logo goes to the main product site, not this app's own index -
+      // this app is only the docs, the logo is the whole-brand mark.
+      url: "https://vulnix.dev",
     },
     // Rendered manually inside the sidebar footer instead (app/layout.tsx),
     // alongside the "Try Vulnix Cloud" CTA in the same bar - the default
