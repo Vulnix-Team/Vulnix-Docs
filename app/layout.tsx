@@ -8,6 +8,7 @@ import { satoshi } from "@/app/fonts/satoshi";
 import { source } from "@/lib/source";
 import { baseOptions } from "@/lib/layout.shared";
 import { DocsSocialLinks } from "@/components/docs-social-links";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 import "./globals.css";
 
@@ -21,15 +22,25 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-const SITE_URL = "https://docs.vulnix.dev";
-
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Vulnix Docs",
-    template: "%s | Vulnix Docs",
+    default: SITE_NAME,
+    template: `%s | ${SITE_NAME}`,
   },
-  description: "Documentation for Vulnix, the agentic AI-pentesting platform.",
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+  },
 };
 
 export default function RootLayout({

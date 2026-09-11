@@ -14,6 +14,7 @@ import { getMDXComponents } from "@/components/mdx-components";
 import { DocsSocialLinks } from "@/components/docs-social-links";
 import { MarkdownCopyButton, ViewOptionsPopover } from "@/components/docs-page-actions";
 import { getGithubUrl, getMarkdownUrl } from "@/lib/docs-page-actions";
+import { SITE_NAME, SITE_URL } from "@/lib/seo";
 
 export default async function Page(props: { params: Promise<{ slug?: string[] }> }) {
   const params = await props.params;
@@ -58,8 +59,23 @@ export async function generateMetadata(props: {
   const page = source.getPage(params.slug);
   if (!page) notFound();
 
+  const url = `${SITE_URL}${page.url}`;
+
   return {
     title: page.data.title,
     description: page.data.description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: page.data.title,
+      description: page.data.description,
+      url,
+      siteName: SITE_NAME,
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: page.data.title,
+      description: page.data.description,
+    },
   };
 }
