@@ -1,0 +1,73 @@
+---
+title: Billing & Credits
+description: Prepaid credits, flat per-action pricing, and how the trial works.
+---
+
+Vulnix bills on a credit system, not open-ended usage metering. Every billable action has a
+fixed, upfront price, charged the moment you launch it — never metered by run duration or
+resource consumption, so you always know the cost before you commit to it.
+
+## What each action costs
+
+<TypeTable
+  type={{
+    quick_scan: {
+      description: "Blackbox, quick mode — available on any plan, including trial",
+      type: "$25",
+    },
+    deep_scan: {
+      description: "Blackbox, deep mode — available on any plan",
+      type: "$100",
+    },
+    whitebox: {
+      description: "Whitebox pentest — requires a paid plan",
+      type: "$150",
+    },
+    whitebox_combined: {
+      description: "Whitebox pentest with a verified domain target also attached",
+      type: "$225",
+    },
+    pr_review: {
+      description: "Per PR review — available on any plan, including trial",
+      type: "$15",
+    },
+  }}
+/>
+
+## Plans
+
+<TypeTable
+  type={{
+    starter: {
+      description: "500 credits granted monthly. Self-serve via Stripe Checkout.",
+      type: "$99/mo",
+    },
+    pro: {
+      description: "2,000 credits granted monthly. Self-serve via Stripe Checkout.",
+      type: "$299/mo",
+    },
+    enterprise: {
+      description: "Custom pricing and credit grant — staff-provisioned only, no self-serve checkout exists for this plan.",
+      type: "Custom",
+    },
+  }}
+/>
+
+<Callout title="Trial">
+  Every new organization gets a one-time $25 trial credit grant — exactly enough for one quick
+  Blackbox scan or PR review, no card required. Whitebox pentesting requires upgrading to a paid
+  plan; PR review works on the trial plan too.
+</Callout>
+
+## Upgrading plans
+
+Plan changes are upward-only — you can move from Starter to Pro, but there's no in-app downgrade
+or lateral move. An upgrade takes effect immediately: you're charged for a full new billing
+cycle at the new plan's price (no proration), and your credit grant becomes the new plan's full
+monthly amount right away.
+
+## Where to see your usage
+
+`/settings/billing` shows your current plan, credit balance, and a full ledger of every
+charge and grant — the same audit trail that backs support's ability to explain exactly what a
+credit balance reflects.

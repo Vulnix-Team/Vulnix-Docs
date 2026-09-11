@@ -1,0 +1,59 @@
+---
+title: Domains & Verification
+description: How to add a Blackbox target and prove you actually own it.
+---
+
+A domain has to be verified before it can be used as a Blackbox target or attached to a Whitebox
+scope as a combined target — verification is what gates whether a run against it is allowed to
+start at all.
+
+## Adding a domain
+
+From **Domains**, add the domain you want to test. It starts in an unverified state — nothing can
+be run against it yet.
+
+![Verifying domain ownership](/docs-images/domain-verification.png)
+
+## Verifying ownership
+
+<Tabs items={['DNS TXT record', 'Uploaded file', 'Meta tag', 'Cloudflare / Vercel (automatic)']}>
+
+<Tab value="DNS TXT record">
+
+Add a TXT record with the value Vulnix gives you to your domain's DNS zone, then confirm. Works
+regardless of who hosts your DNS — the most portable option if you're not on Cloudflare or Vercel.
+
+</Tab>
+
+<Tab value="Uploaded file">
+
+Upload a file with a specific name and content to your site's root — useful when you control the
+webserver directly but not the DNS zone.
+
+</Tab>
+
+<Tab value="Meta tag">
+
+Add a meta tag to your site's homepage `<head>`. The fastest option if you can push a small
+markup change without a deploy pipeline.
+
+</Tab>
+
+<Tab value="Cloudflare / Vercel (automatic)">
+
+<Callout title="No copy-pasting required">
+  Connect the provider via OAuth and Vulnix creates the DNS record for you directly — the
+  domain verifies itself, no manual DNS step at all.
+</Callout>
+
+</Tab>
+
+</Tabs>
+
+## After verification
+
+- The domain becomes selectable as a Blackbox target in the pentest wizard.
+- You can optionally save test-user credentials against it for authenticated testing — see
+  [Scoping a Run](/concepts/scoping-a-run).
+- It becomes eligible to attach to a Whitebox scope as a combined target (the $225 price point —
+  see [Blackbox vs. Whitebox](/concepts/blackbox-vs-whitebox)).

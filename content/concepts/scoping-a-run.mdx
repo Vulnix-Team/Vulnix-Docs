@@ -1,0 +1,63 @@
+---
+title: Scoping a Run
+description: Every option available when configuring a pentest, and what each one actually does.
+---
+
+Scope is defined once when you create it and reused by every run against that target. This page
+covers every option the wizard exposes.
+
+## Scan mode
+
+<TypeTable
+  type={{
+    quick: {
+      description: "A fast, lighter pass. What every trial organization's credit grant covers.",
+      type: "$25",
+    },
+    standard: {
+      description: "A middle-depth pass.",
+      type: "priced as deep",
+    },
+    deep: {
+      description: "The most thorough pass Vulnix runs.",
+      type: "$100",
+    },
+  }}
+/>
+
+## Narrowing the scope
+
+- **Excluded paths** — routes or directories the agent should never touch, even if discovered.
+- **Rate limits** — a cap on request volume against the live target, so testing doesn't degrade
+  it for real users.
+- **Testing window** — a time range the agent is allowed to run in, useful for testing outside
+  business hours.
+- **Free-text context** — anything the agent should know going in that isn't discoverable on its
+  own (e.g. "the /admin path is intentionally IP-restricted, don't flag it as exposed").
+- **Reference documents** — upload supporting material (an API spec, an architecture note) for
+  the agent to use as context during testing.
+
+## Surface discovery
+
+When you first define a scope, Vulnix crawls the target's homepage for links and suggests up to
+30 candidate surfaces — a starting point you can prune or extend, not a fixed list you're stuck
+with.
+
+## Authenticated testing
+
+<Callout title="Two separate mechanisms">
+  These solve different problems and can both be set on the same target.
+</Callout>
+
+- **Test-user credentials** — a login URL, username, and password for a real account on the
+  target. Save it once against the domain and every future run against that domain can reuse it,
+  instead of re-entering it per scan.
+- **Custom HTTP headers** — arbitrary headers (a bearer token, an API key, a WAF-allowlist
+  header) attached to every request the agent makes. Independent of test-user credentials — use
+  this for access that isn't a normal login flow.
+
+## What carries over between runs
+
+Everything above is set on the **scope**, not the run — excluded paths, rate limits, saved
+credentials, and custom headers all persist. A new run against the same scope reuses them by
+default; you only revisit this configuration when something about the target actually changes.

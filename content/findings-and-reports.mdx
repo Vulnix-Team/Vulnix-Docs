@@ -1,0 +1,119 @@
+---
+title: Findings & Reports
+description: Severity, evidence, remediation actions, and every export format.
+---
+
+<InlineTOC />
+
+## Anatomy of a finding
+
+Every finding carries the same core shape, regardless of scan type:
+
+<TypeTable
+  type={{
+    severity: {
+      description: "critical, high, medium, low, or info",
+      type: "string",
+    },
+    cwe_cve: {
+      description: "Standard vulnerability classification, where applicable",
+      type: "string | null",
+    },
+    evidence: {
+      description: "Reproduction evidence — the request/response for a blackbox finding",
+      type: "string",
+    },
+    code_location: {
+      description: "Exact file and line — Whitebox findings only",
+      type: "string | null",
+    },
+    remediation: {
+      description: "Suggested remediation steps, and a fix-PR body where applicable",
+      type: "string",
+    },
+    status: {
+      description: "open, fixed, snoozed, or risk-accepted",
+      type: "string",
+    },
+  }}
+/>
+
+![A finding's detail view](/docs-images/finding-detail.png)
+
+## Working a finding
+
+<Steps>
+<Step>
+
+### Triage
+
+Findings land in **Issues**, filterable by severity and status, with free-text search and
+repo/domain filters. Update a finding's status inline as your team works through it.
+
+</Step>
+<Step>
+
+### Resolve, snooze, or accept the risk
+
+Mark a finding **fixed** once you've addressed it, **snooze** it to revisit later, or formally
+**accept the risk** — every one of these actions is audited: who, and when.
+
+</Step>
+<Step>
+
+### Validate the fix
+
+Don't just trust that a fix worked — **Validate Fix** is a separate, narrowly-scoped run that
+replays the *exact original exploit* against just that finding's asset, confirming the fix
+actually holds before you close it out. This isn't a status toggle; it's a real re-test.
+
+</Step>
+<Step>
+
+### (Whitebox only) Create a Fix PR
+
+For an eligible Whitebox finding, open a real GitHub pull request with the engine-derived fix
+already applied — a manual, per-finding action, not automatic.
+
+<Callout type="warn" title="Trial plans">
+  Creating a Fix PR for a critical or high severity finding requires a paid plan — the same
+  restriction that applies to full finding detail on a trial organization.
+</Callout>
+
+</Step>
+</Steps>
+
+## Reports
+
+Every run produces an exportable report from `/reports`, in whichever format fits how you need to
+use it:
+
+<TypeTable
+  type={{
+    pdf: {
+      description: "A shareable, human-readable report — the default for stakeholders.",
+      type: "PDF",
+    },
+    docx: {
+      description: "Editable — for teams that annotate or redistribute reports internally.",
+      type: "DOCX",
+    },
+    json: {
+      description: "The full structured data — for building your own tooling on top.",
+      type: "JSON",
+    },
+    sarif: {
+      description: "Static Analysis Results Interchange Format — feeds directly into a CI pipeline or code-scanning dashboard that already understands SARIF.",
+      type: "SARIF",
+    },
+  }}
+/>
+
+Every format is rendered from the exact same underlying data — a PDF and a SARIF export of the
+same run will never disagree on what was found.
+
+### Comparing runs over time
+
+`/reports/compare` diffs findings across two runs of the same scope — the fastest way to show a
+stakeholder real remediation progress between two points in time, rather than re-reading two
+separate reports side by side.

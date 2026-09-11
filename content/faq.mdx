@@ -1,0 +1,55 @@
+---
+title: FAQ
+description: Answers to what people actually ask before and during their first scan.
+---
+
+<Accordions type="single">
+
+<Accordion title="Do I need to sign anything before Vulnix can test my domain?">
+No separate legal authorization form — verifying that you actually control the domain (DNS TXT
+record, an uploaded file, or a meta tag) is what gates whether a run against it can start. See
+[Blackbox vs. Whitebox](/concepts/blackbox-vs-whitebox).
+</Accordion>
+
+<Accordion title="What does my trial actually let me do?">
+A one-time $25 credit grant, sized for exactly one quick Blackbox scan or PR review — no card
+required. Whitebox pentesting requires a paid plan; PR review works on trial. See
+[Billing & Credits](/billing-and-credits).
+</Accordion>
+
+<Accordion title="Can I downgrade or move sideways between plans?">
+No — plan changes are upward-only today. Moving from Starter to Pro takes effect immediately, at
+the new plan's full price for a fresh billing cycle (no proration).
+</Accordion>
+
+<Accordion title="What happens to my credentials during a run?">
+Test-user credentials and custom headers are encrypted at rest and only decrypted inside that
+run's own isolated sandbox — see [Security & Trust](/security-and-trust) for the full
+picture.
+</Accordion>
+
+<Accordion title="Can Vulnix connect to GitLab, Bitbucket, or Slack?">
+Not yet — they appear in Integrations as clearly-marked "coming soon" placeholders, not partially
+working connections.
+</Accordion>
+
+<Accordion title="Is there a public API?">
+Not today. Report data is available as a structured JSON export per run, and SARIF for CI
+pipelines — see [Findings & Reports](/findings-and-reports).
+</Accordion>
+
+<Accordion title="What's the difference between marking a finding 'fixed' and running Validate Fix?">
+Marking a finding fixed is a status change you make yourself. Validate Fix is a real re-test — it
+replays the original exploit against just that finding's asset to confirm the fix actually holds,
+before you close it out.
+</Accordion>
+
+<Accordion title="Can Enterprise plans self-serve checkout?">
+No — Enterprise is staff-provisioned only. Talk to us if you need custom pricing or a larger
+credit grant.
+</Accordion>
+
+</Accordions>
+
+Question not answered here? See [Getting Help](/getting-help) for support contact and
+platform status.

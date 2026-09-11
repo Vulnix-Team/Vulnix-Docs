@@ -1,0 +1,69 @@
+---
+title: Introduction
+description: What Vulnix is, and how an autonomous pentest actually runs.
+---
+
+Vulnix is an agentic AI-pentesting platform. You connect a target — a live web/API asset or a
+source repository — and an autonomous security-testing agent runs against it inside an isolated
+sandbox, producing verified findings, a live agent trace, and an exportable report. The same
+engine also runs as an automated reviewer on your GitHub pull requests.
+
+Vulnix is the product and orchestration layer around that engine: organizations, scoping, run
+lifecycle, findings triage, and reporting. The agent itself does the actual testing; Vulnix is
+what makes that testing safe to run repeatedly, easy to scope, and useful to act on afterward.
+
+![Product overview — a run in progress](/docs-images/hero-product-overview.png)
+
+## The two ways to test
+
+<Cards>
+  <Card title="Blackbox" href="/concepts/blackbox-vs-whitebox">
+    Your target is a live web or API asset. Vulnix tests it over the network, the way an external
+    attacker would.
+  </Card>
+  <Card title="Whitebox" href="/concepts/blackbox-vs-whitebox">
+    Your target is a connected source repository. Vulnix clones it into the sandbox and tests the
+    code directly, with access to context an external attacker wouldn't have.
+  </Card>
+</Cards>
+
+## What a run produces
+
+- **Findings** — each with severity, a CWE/CVE where applicable, reproduction evidence, and (for
+  whitebox findings) an exact code location.
+- **An agent trace** — a live, then permanent, record of what the agent actually did: the
+  sub-agents it spawned, the tools it called, and why.
+- **A report** — exportable as PDF, DOCX, JSON, or SARIF (the last one built for feeding straight
+  into a CI pipeline).
+
+## Where to go next
+
+<Cards>
+  <Card title="Getting Started" href="/getting-started">
+    Connect your first target and launch a run, start to finish.
+  </Card>
+  <Card title="Scoping a Run" href="/concepts/scoping-a-run">
+    Every configuration option available when defining a scope.
+  </Card>
+  <Card title="Findings & Reports" href="/findings-and-reports">
+    Severity, evidence, remediation actions, and every export format.
+  </Card>
+  <Card title="Dashboard" href="/dashboard">
+    The analytics view of your organization's security posture over time.
+  </Card>
+  <Card title="Security & Trust" href="/security-and-trust">
+    Run isolation, credential handling, and what's audited.
+  </Card>
+  <Card title="Billing & Credits" href="/billing-and-credits">
+    Plans, per-action pricing, and how the trial credit grant works.
+  </Card>
+  <Card title="Glossary" href="/glossary">
+    The vocabulary this documentation uses throughout.
+  </Card>
+  <Card title="FAQ" href="/faq">
+    Quick answers to what people ask before and during their first scan.
+  </Card>
+  <Card title="Getting Help" href="/getting-help">
+    Support contact and platform status, for when these docs don't cover it.
+  </Card>
+</Cards>

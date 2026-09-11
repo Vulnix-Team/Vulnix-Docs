@@ -1,0 +1,113 @@
+---
+title: Getting Started
+description: Connect a target and run your first pentest.
+---
+
+Every organization gets a one-time trial credit grant on signup, so you can run a real pentest
+before deciding on a plan.
+
+![The pentest wizard and live run view](/docs-images/wizard-and-live-run.png)
+
+<Steps>
+
+<Step>
+
+### Create your organization
+
+Sign up and confirm your email. This creates your organization — the workspace your team, targets,
+and runs all belong to. You can invite teammates with a role (`owner`, `admin`, `analyst`, or
+`viewer`) from **Settings → Members** at any point.
+
+</Step>
+
+<Step>
+
+### Connect a target
+
+Vulnix tests two kinds of targets. Pick whichever matches what you want to scan first — you can
+add the other kind later, and a single organization can run both.
+
+<Tabs items={['Blackbox (web/API asset)', 'Whitebox (source repository)']}>
+  <Tab value="Blackbox (web/API asset)">
+
+    Add a domain from **Domains**, then verify you actually control it — this is what gates
+    whether a run against it is allowed to start at all, not a separate legal sign-off.
+
+    <Steps>
+      <Step>
+        **Verify ownership.** Add a DNS TXT record, an uploaded file, or a meta tag — whichever
+        is easiest for how the domain is hosted. If the domain is on Cloudflare or Vercel, connect
+        that provider via OAuth instead and Vulnix creates the DNS record for you automatically.
+      </Step>
+      <Step>
+        **(Optional) Save test-user credentials.** For authenticated testing, store a login URL
+        and credentials on the domain — saved for reuse across future runs, not just the one scan.
+      </Step>
+    </Steps>
+
+  </Tab>
+  <Tab value="Whitebox (source repository)">
+
+    Install the Vulnix GitHub App on your account or organization, then explicitly pick which
+    repositories to track under **Repositories** — installing the app doesn't enroll every repo
+    automatically.
+
+    <Callout title="This also enables PR review">
+      A tracked repository can be used as a whitebox pentest target *and* enrolled in automatic PR
+      review — Vulnix will run a diff-scoped review on qualifying pull requests and post a real
+      GitHub Review with inline comments, independent of running a full pentest. See
+      [GitHub Integration](/integrations/github) for the full per-repository policy options.
+    </Callout>
+
+  </Tab>
+</Tabs>
+
+</Step>
+
+<Step>
+
+### Configure and launch a scan
+
+From **New Pentest**, pick a scan mode (`quick`, `standard`, or `deep`), then narrow the scope as
+needed: excluded paths, rate limits, a testing window, and — for a blackbox target — custom HTTP
+headers (useful for a WAF allowlist token or an API key) alongside any saved test-user credentials.
+Add free-text context or reference documents if there's something the agent should know going in.
+
+Launching a run queues it behind a global capacity reconciler, so sandbox capacity is never
+overcommitted across your organization's runs — it starts as soon as a slot is free.
+
+</Step>
+
+<Step>
+
+### Watch it run, then act on the results
+
+The run view streams the agent's progress live: an interactive trace of every sub-agent it spawned
+and what each one did, plus findings as they're discovered. When it finishes, each finding carries
+its severity, reproduction evidence, and — for a whitebox finding — the exact code location.
+
+<Callout title="The cost shown mid-run is an estimate">
+  A running scan's price was fixed the moment you launched it (see
+  [Billing & Credits](/billing-and-credits)) — any figure shown before it finishes is a
+  heuristic progress estimate, not a live meter, and won't move the actual amount charged.
+</Callout>
+
+From a finding you can mark it fixed, snooze it, formally accept the risk, or (for an eligible
+whitebox finding) have Vulnix open a real GitHub PR with the fix applied. Once you believe an issue
+is resolved, **Validate Fix** re-runs just that finding's original exploit to confirm it actually
+holds before you close it out.
+
+</Step>
+
+</Steps>
+
+## What's next
+
+- [Blackbox vs. Whitebox](/concepts/blackbox-vs-whitebox) — a closer look at how each scan
+  type actually works.
+- [Domains & Verification](/concepts/domains-and-verification) — every way to prove you own
+  a target.
+- [Scoping a Run](/concepts/scoping-a-run) — every configuration option, in depth.
+- [Findings & Reports](/findings-and-reports) — severity, evidence, and export formats.
+- [Dashboard](/dashboard) — your organization's posture over time.
+- [Notifications](/notifications) — what Vulnix tells you, in-app and by email.

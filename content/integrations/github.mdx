@@ -1,0 +1,70 @@
+---
+title: GitHub Integration
+description: Connect a repository for Whitebox testing and automatic PR review.
+---
+
+## Connecting the app
+
+Install the Vulnix GitHub App on your account or organization, then explicitly pick which
+repositories to track from **Repositories** — installing the app does not enroll every repository
+you have access to automatically. Only tracked repositories are visible to Vulnix at all.
+
+A tracked repository unlocks two independent capabilities. You can use either one on its own, or
+both together.
+
+<Cards>
+  <Card title="Whitebox pentest target" href="/concepts/blackbox-vs-whitebox">
+    Vulnix clones the repository into an isolated sandbox and tests the source directly.
+  </Card>
+  <Card title="Automatic PR review" href="#automatic-pr-review">
+    Every qualifying pull request gets a diff-scoped review, posted as a real GitHub Review.
+  </Card>
+</Cards>
+
+## Automatic PR review
+
+Once enrolled, Vulnix reviews qualifying pull requests without you doing anything: a diff-scoped
+scan of what actually changed, run in an isolated sandbox, that posts a real GitHub Review —
+inline comments included — plus a Checks API status, visible on the PR itself and in
+`/pr-reviews`.
+
+![A posted PR review, on GitHub](/docs-images/github-pr-review.png)
+
+### Per-repository policy
+
+Every tracked repository has its own policy, layered over your organization's defaults:
+
+<TypeTable
+  type={{
+    auto_review: {
+      description: "Whether a qualifying PR gets reviewed automatically at all",
+      type: "on / off",
+    },
+    block_on_findings: {
+      description: "Whether the Checks API status blocks a merge when the review finds issues",
+      type: "on / off",
+    },
+    rereview_on_push: {
+      description: "Whether pushing new commits to an already-reviewed PR triggers a fresh review",
+      type: "on / off",
+    },
+  }}
+/>
+
+<Callout title="Available on every plan">
+  Unlike Whitebox pentesting, PR review is never plan-gated — it runs on the trial plan too, at
+  $15 per review.
+</Callout>
+
+## Using the repository as a pentest target
+
+The same connection lets you run a full [Whitebox pentest](/concepts/blackbox-vs-whitebox)
+against the repository — Vulnix clones it into the sandbox and tests the source directly,
+independent of whether PR review is also enabled.
+
+## What's not connected yet
+
+<Callout type="warn" title="Roadmap, not available today">
+  GitLab, Bitbucket, Slack, and Microsoft Teams appear in **Integrations** as clearly-marked
+  "coming soon" placeholders. They are not partially working — there is nothing to connect yet.
+</Callout>

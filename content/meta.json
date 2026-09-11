@@ -1,0 +1,19 @@
+{
+  "title": "Vulnix Docs",
+  "pages": [
+    "index",
+    "getting-started",
+    "concepts",
+    "dashboard",
+    "findings-and-reports",
+    "notifications",
+    "integrations",
+    "platform",
+    "security-and-trust",
+    "billing-and-credits",
+    "glossary",
+    "faq",
+    "getting-help",
+    "graph"
+  ]
+}

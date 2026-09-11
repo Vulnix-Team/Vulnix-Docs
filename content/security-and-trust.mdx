@@ -1,0 +1,67 @@
+---
+title: Security & Trust
+description: How a run is isolated, what happens to your credentials, and what's audited.
+---
+
+Testing a live target — your own, or a repository you've connected — means Vulnix necessarily
+handles sensitive material: access credentials, source code, and the traffic the agent generates.
+Here's what actually happens to it.
+
+## Run isolation
+
+Every run executes in its own dedicated sandbox, torn down when the run ends:
+
+<TypeTable
+  type={{
+    network: {
+      description: "Default-deny egress, with an explicit allow-rule scoped only to your target's own address range — the agent cannot reach anything else",
+      type: "per-run NetworkPolicy",
+    },
+    credentials: {
+      description: "Injected as a Kubernetes Secret scoped to that one run and deleted when it ends",
+      type: "per-run Secret",
+    },
+    limits: {
+      description: "A hard CPU/memory limit and a wall-clock deadline, so a run can never run away with shared infrastructure",
+      type: "resource + time limits",
+    },
+  }}
+/>
+
+<Callout title="Orphan cleanup">
+  If a run's sandbox is ever left behind by an interrupted workflow, a reconciliation process
+  detects and tears it down automatically — nothing is left running silently.
+</Callout>
+
+## Credentials and secrets
+
+<Accordions type="single">
+  <Accordion title="Test-user credentials and custom headers">
+    Encrypted at rest, decrypted only inside the sandbox for the run that needs them, and
+    injected as a per-run Secret — never baked into an image, never logged.
+  </Accordion>
+  <Accordion title="DNS provider connections (Cloudflare, Vercel)">
+    OAuth access/refresh tokens are encrypted at rest with the same mechanism used for test-user
+    credentials — the same sensitivity class, the same protection.
+  </Accordion>
+  <Accordion title="Your GitHub connection">
+    The GitHub App is scoped to only the repositories you explicitly track — installing it does
+    not grant Vulnix access to your full account.
+  </Accordion>
+</Accordions>
+
+## Authentication
+
+- **Client accounts**: standard session-based auth, with role-based access per organization (see
+  [Roles & Access](/platform/roles-and-access)).
+- **Staff access**: a fully separate portal, gated by mandatory two-factor authentication with no
+  grace period — staff cannot sign in without it, ever.
+- **Every staff action is audit-logged** — who, what, and when.
+
+## What's not built yet
+
+We'd rather tell you plainly than let you assume: there is no independent, hardware-level
+virtualization boundary around a run's sandbox today — isolation is enforced at the container,
+network, and credential-scope level described above, not a separate virtual machine per run.
+If that boundary matters to your specific threat model, talk to us before running Vulnix against
+a target where it's a hard requirement.

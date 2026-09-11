@@ -1,0 +1,59 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Vulnix brand mapped onto Fumadocs' own `--color-fd-*` token namespace
+   (confirmed isolated from this app's `--primary`/`--background`/etc.
+   tokens in ../globals.css - no collision, safe to define independently
+   here). Values match docs/brand: Ink #010101, Ember #fe4202, Cream
+   #f2f3ee - the same palette apps/web/app/globals.css uses for the rest
+   of the product, so the docs site reads as the same brand, not a
+   default Fumadocs theme with a logo swapped in. */
+:root {
+  --color-fd-background: #f2f3ee;
+  --color-fd-foreground: #010101;
+  --color-fd-muted: #e3e8e6;
+  --color-fd-muted-foreground: #54635f;
+  --color-fd-popover: #ffffff;
+  --color-fd-popover-foreground: #010101;
+  --color-fd-card: #ffffff;
+  --color-fd-card-foreground: #010101;
+  --color-fd-border: #d6dcda;
+  --color-fd-primary: #010101;
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: #e3e8e6;
+  --color-fd-secondary-foreground: #010101;
+  --color-fd-accent: #fef1ec;
+  --color-fd-accent-foreground: #fe4202;
+  --color-fd-ring: #fe4202;
+}
+
+.dark {
+  --color-fd-background: #010101;
+  --color-fd-foreground: #f2f3ee;
+  --color-fd-muted: #1a1a1a;
+  --color-fd-muted-foreground: #9ca39f;
+  --color-fd-popover: #111111;
+  --color-fd-popover-foreground: #f2f3ee;
+  --color-fd-card: #111111;
+  --color-fd-card-foreground: #f2f3ee;
+  --color-fd-border: rgba(255, 255, 255, 0.1);
+  --color-fd-primary: #f2f3ee;
+  --color-fd-primary-foreground: #010101;
+  --color-fd-secondary: #1a1a1a;
+  --color-fd-secondary-foreground: #f2f3ee;
+  --color-fd-accent: rgba(254, 66, 2, 0.12);
+  --color-fd-accent-foreground: #fe4202;
+  --color-fd-ring: #fe4202;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}

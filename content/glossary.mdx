@@ -1,0 +1,70 @@
+---
+title: Glossary
+description: The vocabulary this documentation uses throughout.
+---
+
+### Agent trace
+
+The live, then permanent, record of what the pentesting agent actually did during a run: every
+sub-agent it spawned, every tool it called, and why — rendered as an interactive graph, not a flat
+log.
+
+### Blackbox
+
+A scan against a live web or API asset, tested over the network the way an external attacker
+would, with no source access. See [Blackbox vs. Whitebox](/concepts/blackbox-vs-whitebox).
+
+### Credit
+
+Vulnix's unit of billing. Every billable action has a fixed, upfront credit cost — see
+[Billing & Credits](/billing-and-credits).
+
+### Domain
+
+A verified web/API asset that can be used as a Blackbox target. See
+[Domains & Verification](/concepts/domains-and-verification).
+
+### Finding
+
+A single verified issue discovered during a run — carries a severity, evidence, and (for a
+Whitebox finding) an exact code location. See [Findings & Reports](/findings-and-reports).
+
+### Fix PR
+
+A real GitHub pull request Vulnix can open for an eligible Whitebox finding, with the engine's
+suggested fix already applied — a manual, per-finding action.
+
+### PR review
+
+An automated, diff-scoped review Vulnix runs against a qualifying pull request on a connected
+repository, posted as a real GitHub Review. See [GitHub Integration](/integrations/github).
+
+### Run
+
+A single execution of a scope — the unit that actually consumes credits, produces findings, and
+generates a report.
+
+### Sandbox
+
+The isolated environment a run executes in, torn down when the run ends. See
+[Security & Trust](/security-and-trust).
+
+### Scope
+
+The reusable configuration a run is launched from: scan type, scan mode, exclusions, and any
+saved credentials or headers. See [Scoping a Run](/concepts/scoping-a-run).
+
+### Trial
+
+The one-time $25 credit grant every new organization receives on signup. See
+[Billing & Credits](/billing-and-credits).
+
+### Validate Fix
+
+A narrowly-scoped re-run that replays a finding's exact original exploit to confirm a fix actually
+holds, before you close the finding out.
+
+### Whitebox
+
+A scan against a connected source repository, cloned into the sandbox and tested directly. See
+[Blackbox vs. Whitebox](/concepts/blackbox-vs-whitebox).

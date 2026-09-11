@@ -1,0 +1,46 @@
+---
+title: Roles & Access
+description: Who can do what inside an organization.
+---
+
+## Organization roles
+
+Every user has a role within each organization they belong to — a single account can belong to
+multiple organizations, with a different role in each.
+
+<TypeTable
+  type={{
+    owner: {
+      description: "Everything an admin can do, plus deleting the organization.",
+      type: "highest",
+    },
+    admin: {
+      description: "Manage members, billing, and org-wide settings, in addition to everything an analyst can do.",
+      type: "",
+    },
+    analyst: {
+      description: "Create scopes, launch runs, and manage findings — the working role for a security team.",
+      type: "",
+    },
+    viewer: {
+      description: "Read-only access to runs, findings, and reports.",
+      type: "lowest",
+    },
+  }}
+/>
+
+Invite teammates from **Settings → Members**; each invite specifies the role they'll have once
+accepted. See [Organization Settings](/platform/organization-settings) for everything else
+that lives under Settings.
+
+## Staff
+
+Vulnix staff access is a completely separate flag — not a rung on the organization role ladder
+above. Staff sign in through a distinct portal with mandatory two-factor authentication and no
+grace period, and every staff action is audit-logged.
+
+## Demo access
+
+Prospective customers get a read-only tour of a fixed, pre-seeded demo organization: every
+mutation is blocked centrally except a small allowlist of safe actions (like adding a test
+domain), so the demo can be explored freely without any risk of altering real seeded data.

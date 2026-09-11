@@ -1,0 +1,63 @@
+---
+title: Notifications
+description: What Vulnix tells you, and when it also sends an email.
+---
+
+Vulnix keeps you informed through an in-app notification feed, and escalates a small set of
+events to email — the ones an in-app feed alone can't reliably reach you for.
+
+## The notification feed
+
+Every user has a bell icon with an unread count. From the feed you can mark individual
+notifications read, dismiss them, or mark everything read at once — older notifications load on
+demand rather than all at once.
+
+## What triggers a notification
+
+<TypeTable
+  type={{
+    team: {
+      description: "Invites sent and accepted, role changes, members removed",
+      type: "in-app",
+    },
+    verification: {
+      description: "Domain ownership verification succeeding or failing",
+      type: "in-app",
+    },
+    account: {
+      description: "Email verification, password changes",
+      type: "in-app + email",
+    },
+    billing: {
+      description: "Payment failures, plan changes, credit adjustments",
+      type: "in-app + email (payment failures)",
+    },
+    runs: {
+      description: "A pentest run reaching a terminal state",
+      type: "in-app, + email if you opt in per scope",
+    },
+    validate_fix: {
+      description: "The outcome of a Validate Fix re-test",
+      type: "in-app",
+    },
+    pr_review: {
+      description: "PR review outcomes GitHub's own UI doesn't already surface, and an automated Fix PR being opened",
+      type: "in-app",
+    },
+    github_app: {
+      description: "Your GitHub App installation being revoked or disconnected",
+      type: "in-app",
+    },
+  }}
+/>
+
+<Callout title="Why only some events are emailed">
+  Most events are in-app only by design — email is reserved for the handful of cases where
+  missing the notification would actually hurt you (a failed payment, a changed password), or
+  where you've explicitly asked to be told (opting in to run-completion emails on a scope).
+</Callout>
+
+## Opting into run-completion emails
+
+Per-scope, under its configuration: turn on "notify on completion" and every run against that
+scope emails you when it finishes, on top of the in-app notification everyone gets by default.

@@ -1,0 +1,63 @@
+---
+title: Dashboard
+description: The analytics view of your organization's security posture over time.
+---
+
+`/dashboard` is where you land by default — a real-time view of posture across every scope, not
+just a single run.
+
+![The client dashboard](/docs-images/dashboard-overview.png)
+
+## What's on it
+
+<TypeTable
+  type={{
+    security_score: {
+      description: "A 0–100 gauge with a point-delta trend against the prior period",
+      type: "hero widget",
+    },
+    issues_over_time: {
+      description: "Severity-stacked weekly trend, filterable by Pentests / PR Reviews / All",
+      type: "chart",
+    },
+    open_vs_fixed: {
+      description: "How your backlog is actually moving",
+      type: "chart",
+    },
+    mttr: {
+      description: "Mean time to remediate, as a trend line",
+      type: "chart",
+    },
+    testing_activity: {
+      description: "A GitHub-style calendar heatmap of testing activity",
+      type: "chart",
+    },
+    cwe_distribution: {
+      description: "Which vulnerability classes show up most often",
+      type: "chart",
+    },
+    top_issues: {
+      description: "Your highest-severity open findings, surfaced first",
+      type: "list",
+    },
+    top_affected_assets: {
+      description: "Which domains or repositories carry the most open findings",
+      type: "list",
+    },
+  }}
+/>
+
+## Time range
+
+Every chart responds to the same range control, so you're always comparing the same window across
+widgets rather than reconciling mismatched date ranges by hand.
+
+## Trial organizations
+
+<Callout type="warn" title="Full detail on critical/high findings requires a paid plan">
+  On a trial organization, a critical or high severity entry in **Top Issues** or the
+  exploitability list shows its severity and status, but the title and CVE are shown as a
+  redacted placeholder rather than the real value — this is intentional gating, not a rendering
+  issue. Every other widget, and every medium/low/info finding, is shown in full regardless of
+  plan.
+</Callout>
