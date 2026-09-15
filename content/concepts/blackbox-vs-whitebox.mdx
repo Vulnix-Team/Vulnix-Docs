@@ -10,7 +10,7 @@ the agent differently, produce different kinds of findings, and are priced diffe
   type={{
     target: {
       description: "What the agent tests",
-      type: "Blackbox: a verified domain — Whitebox: a connected source repository",
+      type: "Blackbox: a verified domain, API host, or public IP range — Whitebox: a connected source repository",
     },
     access: {
       description: "What the agent can see",
@@ -41,16 +41,25 @@ the agent differently, produce different kinds of findings, and are priced diffe
 
 ## Blackbox
 
-You point Vulnix at a live web or API asset you've already **verified you own** — verification,
-not a signed authorization form, is what gates whether a run against that domain can start at
-all. The agent then tests it the way an external attacker would: no source access, no internal
-context, just what's actually reachable over the network.
+You point Vulnix at a live web app, API, or **public IP range** you've already **verified you
+own** — verification, not a signed authorization form, is what gates whether a run against that
+target can start at all. The agent then tests it the way an external attacker would: no source
+access, no internal context, just what's actually reachable over the network.
+
+An IP-range target (a single public IP or a CIDR block like `203.0.113.0/24`) is port- and
+service-scanned: the agent maps exposed services, fingerprints them, and checks each for known
+CVEs and misconfigurations. This is **external, internet-facing** infrastructure testing only —
+private/RFC-1918 ranges (`10.0.0.0/8`, `192.168.0.0/16`, …), loopback, and cloud-metadata
+addresses are rejected when you add the target, and Active Directory is out of scope.
 
 <Callout title="Verification methods">
   A DNS TXT record, an uploaded file, or a meta tag — pick whichever fits how the domain is
   hosted. If it's on Cloudflare or Vercel, connect that provider via OAuth instead and Vulnix
   creates the DNS record for you, no copy-pasting required. See
   [Domains & Verification](/concepts/domains-and-verification) for the full walkthrough.
+
+  A public IP range has no place to host a proof file or record, so it can't be ownership-verified
+  the same way — instead it's restricted to public, externally-routable addresses at input time.
 </Callout>
 
 Blackbox scans come in two modes:
