@@ -7,29 +7,32 @@ Vulnix bills on a credit system, not open-ended usage metering. Every billable a
 fixed, upfront price, charged the moment you launch it — never metered by run duration or
 resource consumption, so you always know the cost before you commit to it.
 
+Credits are Vulnix's own unit, not dollars. You buy them with a plan or a top-up, and every
+price below is quoted in credits.
+
 ## What each action costs
 
 <TypeTable
   type={{
     quick_scan: {
       description: "Blackbox, quick mode — available on any plan, including trial",
-      type: "$25",
+      type: "25 credits",
     },
     deep_scan: {
       description: "Blackbox, deep mode — available on any plan",
-      type: "$100",
+      type: "100 credits",
     },
     whitebox: {
       description: "Whitebox pentest — requires a paid plan",
-      type: "$150",
+      type: "150 credits",
     },
     whitebox_combined: {
       description: "Whitebox pentest with a verified domain target also attached",
-      type: "$225",
+      type: "225 credits",
     },
     pr_review: {
       description: "Per PR review — available on any plan, including trial",
-      type: "$15",
+      type: "15 credits",
     },
   }}
 />
@@ -54,7 +57,7 @@ resource consumption, so you always know the cost before you commit to it.
 />
 
 <Callout title="Trial">
-  Every new organization gets a one-time $25 trial credit grant — exactly enough for one quick
+  Every new organization gets a one-time 25-credit trial grant — exactly enough for one quick
   Blackbox scan or PR review, no card required. Whitebox pentesting requires upgrading to a paid
   plan; PR review works on the trial plan too.
 </Callout>
