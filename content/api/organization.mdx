@@ -1,0 +1,144 @@
+---
+title: Organization
+description: Read and update the organization profile, logo, and default PR-review policy.
+---
+
+The organization is the tenant everything else belongs to. A token always acts inside exactly
+one — the one its creator was in when the token was made. There is no way to switch
+organizations with a token.
+
+## Update the profile
+
+`PATCH /org` · scope `organization:write` · role `admin`
+
+Sparse — omitted fields are left unchanged.
+
+<TypeTable
+  type={{
+    name: { type: "string | null", description: "Display name of the organization." },
+    website: { type: "string | null", description: "Primary website." },
+    industry: { type: "string | null", description: "Industry descriptor." },
+    team_size: { type: "string | null", description: "Team size band." },
+  }}
+/>
+
+```bash
+curl -X PATCH https://api.vulnix.dev/org \
+  -H "Authorization: Bearer $VULNIX_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Acme Inc", "website": "https://acme.example.com"}'
+```
+
+```json
+{
+  "org_id": "01K5ADMINORG000000000000A",
+  "org_name": "Acme Inc",
+  "website": "https://acme.example.com",
+  "industry": null,
+  "team_size": null
+}
+```
+
+The organization is always taken from the token — there is no `org_id` in the body, and a
+caller can only ever update their own.
+
+## Logo
+
+`GET /org/logo` · scope `organization:read` · no minimum role
+
+Returns the image bytes with the stored content type, not JSON. `404 avatar_not_found` when no
+logo has been uploaded.
+
+`POST /org/logo` · scope `organization:write` · role `admin`
+
+`multipart/form-data` with a single `file` field.
+
+```bash
+curl -X POST https://api.vulnix.dev/org/logo \
+  -H "Authorization: Bearer $VULNIX_TOKEN" \
+  -F "file=@logo.png"
+```
+
+```json
+{ "logo_url": "/api/org-logo/01K5ADM…?v=01M2NP…" }
+```
+
+<TypeTable
+  type={{
+    "Accepted types": { type: "PNG, JPEG, GIF, WebP", description: "The declared content type and the file's actual magic bytes must both match — renaming a `.txt` to `.png` is rejected." },
+    "Maximum size": { type: "2 MB", description: "Anything larger returns `422 invalid_avatar_upload`." },
+  }}
+/>
+
+An empty file, an unsupported type, or a mismatched signature all return
+`422 invalid_avatar_upload`.
+
+The returned `logo_url` carries a fresh cache-busting suffix on every upload, so store the new
+value rather than reusing the old URL.
+
+## PR review defaults
+
+`PATCH /org/pr-review-defaults` · scope `organization:write` · role `admin`
+
+Organization-wide defaults that every repository inherits unless it overrides them. Sparse.
+
+<TypeTable
+  type={{
+    default_approve_clean_prs: { type: "string | null", description: "`on` or `off`. Post an approving review when a PR comes back clean." },
+    default_block_on_findings: { type: "string | null", description: "`on` or `off`. Fail the GitHub check when findings are found." },
+    default_rereview_on_push: { type: "string | null", description: "`on` or `off`. Re-review when new commits land on an open PR." },
+  }}
+/>
+
+```json
+{
+  "default_approve_clean_prs": "on",
+  "default_block_on_findings": "on",
+  "default_rereview_on_push": "off"
+}
+```
+
+<Callout type="info" title="Only `on` and `off` here">
+  These are the defaults themselves, so they must resolve to a real value —
+  [per-repository policy](/api/repositories#update-policy) is the three-valued field, where
+  `default` means "inherit whatever is set here". Sending `default` to this endpoint returns
+  `422 invalid_request`.
+</Callout>
+
+Changing a default immediately changes the behavior of every repository whose own policy is
+`default`. Read each repository's `effective_*` fields afterwards to confirm what will actually
+happen.
+
+## Complete onboarding
+
+`POST /org/onboarding-complete` · scope `organization:write` · no minimum role
+
+No body. Marks the onboarding flow finished.
+
+```json
+{
+  "org_id": "01K5ADMINORG000000000000A",
+  "onboarding_completed_at": "2026-09-16T17:02:44.118293+00:00"
+}
+```
+
+## Console-only organization endpoints
+
+Two organization operations exist that **no token can call**, whatever scopes it carries. Both
+return `403 api_token_route_not_allowed`:
+
+<TypeTable
+  type={{
+    "POST /organizations": { description: "Create an additional workspace." },
+    "DELETE /org": { description: "Permanently delete the organization." },
+  }}
+/>
+
+Both mint and return a console session token as part of their response — creating a workspace
+signs you into it, deleting one signs you into whatever workspace you land on next. An endpoint
+that hands out a session is an endpoint that would let a narrowly-scoped token trade itself up
+for an unscoped one, so neither is reachable with an API token by design. The same rule keeps
+`/auth/switch-org` and every other session-issuing route console-only.
+
+Use the console for both. See
+[what tokens cannot do](/api/authentication#what-tokens-cannot-do).

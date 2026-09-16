@@ -10,6 +10,9 @@
     "domains",
     "repositories",
     "pr-reviews",
-    "knowledge"
+    "knowledge",
+    "organization",
+    "team",
+    "billing"
   ]
 }

@@ -1,0 +1,150 @@
+---
+title: Team
+description: List members and pending invites, invite teammates, change roles, and revoke access.
+---
+
+Team endpoints manage who belongs to the organization and what they can do. Because a token's
+reach is capped by its creator's role, changing someone's role also changes what every token
+they created can do — immediately.
+
+## List members and invites
+
+`GET /team` · scope `members:read` · role `admin`
+
+```bash
+curl https://api.vulnix.dev/team \
+  -H "Authorization: Bearer $VULNIX_TOKEN"
+```
+
+```json
+{
+  "members": [
+    {
+      "user_id": "01K5ADMINUSER00000000000A",
+      "role": "owner",
+      "email": "admin@acme.example.com"
+    }
+  ],
+  "invites": []
+}
+```
+
+<TypeTable
+  type={{
+    "members[].user_id": { type: "string", description: "Pass this as the path parameter to the role-change and revoke endpoints." },
+    "members[].role": { type: "string", description: "`owner`, `admin`, `analyst`, or `viewer`." },
+    "members[].email": { type: "string", description: "The member's address." },
+    "invites[].id": { type: "string", description: "Pass this to revoke a pending invite." },
+    "invites[].email": { type: "string", description: "Who it was sent to." },
+    "invites[].role": { type: "string", description: "Role they will get on acceptance." },
+    "invites[].status": { type: "string", description: "Where the invite stands." },
+  }}
+/>
+
+## Invite a teammate
+
+`POST /invites` · scope `members:write` · role `admin` · returns `201`
+
+<TypeTable
+  type={{
+    email: { type: "string", required: true, description: "Must be a valid address. Sends a real email." },
+    role: { type: "string", required: true, description: "Must be `admin` — see below." },
+  }}
+/>
+
+```bash
+curl -X POST https://api.vulnix.dev/invites \
+  -H "Authorization: Bearer $VULNIX_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "teammate@acme.example.com", "role": "admin"}'
+```
+
+```json
+{
+  "id": "01M2NP…",
+  "email": "teammate@acme.example.com",
+  "role": "admin",
+  "status": "pending"
+}
+```
+
+<Callout type="warn" title="`admin` is the only invitable role">
+  `analyst` and `viewer` remain valid roles and every role gate still honors them, but they are
+  no longer assignable through an invite — a teammate invited at either could barely see
+  anything, which read as a broken invite rather than a deliberate restriction. Any other value
+  returns `409 signup_rejected`.
+</Callout>
+
+### The invite token is never returned
+
+The response deliberately omits the invite token — it goes out only in the email. There is no
+endpoint that returns it, so you cannot script around the email step, and a leaked API response
+cannot be used to join an organization.
+
+Acceptance (`POST /invites/{token}/accept`) is unauthenticated and issues a session, so it is
+not token-reachable either.
+
+### Rate limit
+
+Invites are capped at **20 per hour per organization**, separately from the standard request
+budget, because each one sends a real outbound email. Exceeding it returns
+`429 too_many_invites`.
+
+## Change a member's role
+
+`PATCH /team/members/{user_id}` · scope `members:write` · role `admin`
+
+```json
+{ "role": "admin" }
+```
+
+```json
+{ "status": "role_updated" }
+```
+
+<TypeTable
+  type={{
+    "403 insufficient_role": { description: "The caller is not an admin, or the target is the organization owner — the owner's role cannot be changed by anyone." },
+    "409 signup_rejected": { description: "The role value is not one this organization assigns." },
+  }}
+/>
+
+## Revoke a member
+
+`DELETE /team/members/{user_id}` · scope `members:write` · role `admin`
+
+```json
+{ "status": "revoked" }
+```
+
+The organization owner cannot be revoked — `403 insufficient_role`.
+
+## Revoke a pending invite
+
+`DELETE /team/invites/{invite_id}` · scope `members:write` · role `admin`
+
+```json
+{ "status": "revoked" }
+```
+
+## What revocation actually does
+
+<Callout type="warn" title="Revoking or demoting ends that person's sessions everywhere, immediately">
+  Authorization comes from the session JWT's claims, so a database change alone would leave a
+  removed member with working access for the rest of their token's 24-hour life. Both
+  revocation and any **privilege-reducing** role change stamp a revocation cutoff that
+  invalidates their sessions on the next request.
+
+  The cutoff is per user, not per workspace — it ends their sessions in **every** organization
+  they belong to, not just this one. That is deliberate: for an explicitly security-motivated
+  action, an extra re-login is the right side to err on.
+</Callout>
+
+Removing a member also **revokes every API token they created**. This is the cleanest way to
+cut off automation belonging to someone who has left — you do not have to find their tokens
+first.
+
+A role change that *reduces* privileges also narrows every token that person created, since a
+token's effective role is the lower of its creation-time role and the creator's live role.
+Raising a role does **not** widen existing tokens; those keep the reach they were minted with.
+See [a token never exceeds your own role](/api/authentication).
