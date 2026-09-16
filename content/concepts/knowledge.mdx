@@ -1,0 +1,77 @@
+---
+title: Knowledge & Context
+description: Tell Vulnix how your application works once, and every future run starts with it.
+---
+
+The free-text context and reference documents on a scope apply to one pentest. Knowledge is the
+version that sticks: you write something once, and every run it applies to starts already knowing
+it.
+
+Find it under **Knowledge** in the sidebar.
+
+## What belongs here
+
+Anything true about your application that an agent can't work out by looking at it from the
+outside, and that will still be true next month. Each entry has a type:
+
+<TypeTable
+  type={{
+    "Business Logic": {
+      description: "Rules your application enforces that look arbitrary from outside — limits, approval chains, state machines.",
+      type: "e.g. withdrawals capped at one per 24h",
+    },
+    "Critical Assets": {
+      description: "What actually matters if it breaks, so testing effort goes there first.",
+      type: "e.g. the payments service",
+    },
+    "Testing Rules": {
+      description: "Constraints on how the agent should behave against your systems.",
+      type: "e.g. don't brute-force login, the WAF bans the IP",
+    },
+    "Tech Stack": {
+      description: "Framework, hosting, and auth model — what the agent would otherwise spend a run inferring.",
+      type: "e.g. Rails 7, sessions in Redis",
+    },
+    "Accepted Risks": {
+      description: "Things you already know about and have signed off on.",
+      type: "e.g. self-XSS in the admin notes field",
+    },
+  }}
+/>
+
+Accepted Risks is the one people skip and shouldn't. Without it, every run re-discovers and
+re-reports the same issue you already decided to live with.
+
+## Scope
+
+An entry can apply to specific domains and repositories, or to everything.
+
+Leave the scope empty and it applies to every pentest in your workspace — that's the right choice
+for facts about your organization ("all our APIs require a tenant header"). Pick targets when the
+fact is about one application and would be wrong or noisy applied to the others.
+
+<Callout title="There is no step for this in the pentest wizard">
+  Knowledge is applied by matching a run's targets, automatically. The wizard shows a line
+  confirming it's in play — you never select entries per run, because that would defeat the point
+  of writing them once.
+</Callout>
+
+## What Vulnix learns on its own
+
+The **Learned** tab is the other half: as the agent tests, it takes notes, and the ones describing
+your application rather than the run in progress are kept when the run finishes. Over several
+pentests this builds up an understanding of your system that carries into every later run.
+
+These entries can't be edited — the agent wrote them from what it actually observed, and editing
+one in place would make the page claim something no run concluded. If one is wrong or no longer
+true, delete it. A wrong entry is worth removing promptly, because it steers every run after it.
+
+<Callout type="warn" title="Pentests only, for now">
+  PR reviews don't yet contribute to the Learned tab. Only pentests do.
+</Callout>
+
+## How it reaches the agent
+
+At the start of a run, every entry matching that run's targets is grouped by type and included in
+the agent's instructions, alongside the per-run context you set in the wizard. Your per-run
+context comes first — it's the more specific instruction for that particular pentest.
