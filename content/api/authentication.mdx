@@ -139,6 +139,7 @@ The ones specific to tokens:
   type={{
     "invalid_api_token": { type: "401", description: "Unknown, revoked, or expired token. Deliberately the same error for all three — mint a new token." },
     "api_token_scope_missing": { type: "403", description: "Valid token, missing scope. `details.required_scope` names what to tick." },
+    "api_token_route_not_allowed": { type: "403", description: "This endpoint is console-only — see \"What tokens cannot do\" above. No scope unlocks it." },
     "rate_limited": { type: "429", description: "Slow down. `Retry-After` says how long." },
   }}
 />
