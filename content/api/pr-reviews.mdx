@@ -1,0 +1,131 @@
+---
+title: PR Reviews
+description: Read automated pull-request reviews, their findings, and the verdict posted back to GitHub.
+---
+
+A **PR review** is the agent run against one pull request's diff. Reviews are triggered by
+GitHub webhooks on [connected repositories](/api/repositories) — the API reads them, it does
+not start them.
+
+<Callout type="info" title="Read-only over the API">
+  There is no endpoint to start a PR review. Reviews begin when GitHub tells Vulnix a pull
+  request opened or changed, governed by that repository's `auto_review_enabled` and
+  `effective_rereview_on_push`. Only `pr_reviews:read` exists — there is no `pr_reviews:write`.
+</Callout>
+
+## The PR review object
+
+<TypeTable
+  type={{
+    id: { type: "string", description: "ULID." },
+    repository_id: { type: "string", description: "The connected repository." },
+    provider_pr_number: { type: "number", description: "The PR number on GitHub." },
+    pr_title: { type: "string", description: "Title at the time of review." },
+    branch: { type: "string", description: "Head branch." },
+    base_branch: { type: "string", description: "Branch being merged into." },
+    head_sha: { type: "string", description: "Commit reviewed. Use this to tie a review to a CI run." },
+    base_sha: { type: "string", description: "Commit diffed against." },
+    status: { type: "string", description: "`queued`, `running`, `completed`, or `failed`." },
+    verdict: { type: "string | null", description: "`passed`, `failed`, or `inconclusive`. Null until finished." },
+    trigger: { type: "string", description: "`webhook`." },
+    workflow_id: { type: "string | null", description: "Internal orchestration id." },
+    created_at: { type: "string", description: "ISO 8601." },
+    completed_at: { type: "string | null", description: "Null until terminal." },
+    github_review_event: { type: "string | null", description: "What was posted: `APPROVE`, `REQUEST_CHANGES`, or `COMMENT`." },
+    github_posted: { type: "boolean", description: "Whether posting to GitHub actually succeeded." },
+    files_changed: { type: "number | null", description: "Files in the diff." },
+    cost_usd: { type: "number | null", description: "Measured model spend." },
+    credits_charged: { type: "number", description: "Flat price per review — never varies." },
+  }}
+/>
+
+### Status and verdict are different questions
+
+`status` is whether the review ran. `verdict` is what it concluded. Check both:
+
+<TypeTable
+  type={{
+    "status: completed, verdict: passed": { description: "Ran, found nothing. Safe to merge as far as Vulnix is concerned." },
+    "status: completed, verdict: failed": { description: "Ran, found something. Fetch the findings." },
+    "status: completed, verdict: inconclusive": { description: "Ran but could not reach a judgment — commonly a diff it could not meaningfully analyze. Not a pass." },
+    "status: failed": { description: "The review itself broke. `verdict` stays null. Not a pass either." },
+  }}
+/>
+
+<Callout type="warn" title="Do not treat a non-`failed` verdict as approval">
+  A CI gate written as `if verdict != "failed"` lets `inconclusive` and broken reviews through.
+  Gate on `verdict == "passed"` and decide deliberately what to do with everything else.
+</Callout>
+
+### `github_posted` can be false on a real verdict
+
+The verdict is recorded in Vulnix whether or not GitHub accepted the review — a revoked
+installation or a protected branch can reject the post. When `github_posted` is `false`, the
+pull request shows no review even though a verdict exists. If you rely on the GitHub check
+alone, that case is invisible; reading `verdict` over the API is what closes the gap.
+
+## List PR reviews
+
+`GET /pr-reviews` · scope `pr_reviews:read` · role `analyst`
+
+Every review in the organization, each with two fields beyond the object above:
+
+<TypeTable
+  type={{
+    repository_full_name: { type: "string | null", description: "`owner/name`, so you do not have to resolve `repository_id`." },
+    issues_count: { type: "number", description: "Findings from this review." },
+  }}
+/>
+
+```json
+{ "pr_reviews": [] }
+```
+
+## Get a PR review
+
+`GET /pr-reviews/{pr_review_id}` · scope `pr_reviews:read` · role `analyst`
+
+The review object plus `repository_full_name`. A missing or foreign id returns
+`404 pr_review_not_found`.
+
+## Findings from a PR review
+
+`GET /pr-reviews/{pr_review_id}/findings` · scope `pr_reviews:read` · role `analyst`
+
+```json
+{
+  "findings": [],
+  "severity_breakdown": { "critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0 }
+}
+```
+
+Holds [finding objects](/api/findings#the-finding-object). PR-review findings carry
+`code_locations` — file and line — because the agent worked from a diff.
+
+<Callout type="info" title="Only critical and high can fail a check">
+  When `block_on_findings` is on, the GitHub check fails on `critical` or `high` findings.
+  Lower severities are reported but never block a merge. Read `severity_breakdown` if you want
+  a stricter gate of your own.
+</Callout>
+
+## Agent trace
+
+`GET /pr-reviews/{pr_review_id}/agent-trace` · scope `pr_reviews:read` · role `analyst`
+
+Identical shape to a run's — see
+[agent trace](/api/runs#agent-trace) for the node fields and the free-trial `locked` behavior.
+
+## Live events
+
+`GET /pr-reviews/{pr_review_id}/events` · scope `pr_reviews:read` · role `analyst`
+
+Server-Sent Events while the review executes. See
+[live event streams](/api/conventions#live-event-streams).
+
+## Policy
+
+What gets reviewed, whether a clean PR is approved, and whether findings block the merge are
+per-repository settings with an organization-wide default:
+
+- [Per repository](/api/repositories#update-policy) — `PATCH /repositories/{repository_id}`
+- [Organization defaults](/api/organization#pr-review-defaults) — `PATCH /org/pr-review-defaults`

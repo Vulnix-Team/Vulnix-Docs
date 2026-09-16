@@ -1,0 +1,186 @@
+---
+title: Findings
+description: Pull findings, filter them, change their status, re-test a fix, and open a fix PR.
+---
+
+A **finding** is one issue the agent confirmed. Findings come from a [run](/api/runs) or from a
+[PR review](/api/pr-reviews) — exactly one of `run_id` or `pr_review_id` is ever set.
+
+## The finding object
+
+<TypeTable
+  type={{
+    id: { type: "string", description: "ULID." },
+    run_id: { type: "string | null", description: "Set when the finding came from a pentest run." },
+    domain_id: { type: "string | null", description: "The domain it was found on, when it has one." },
+    rule_id: { type: "string | null", description: "Stable identifier for the class of issue. Use this to deduplicate across runs." },
+    title: { type: "string", description: "Short human summary." },
+    severity: { type: "string", description: "`critical`, `high`, `medium`, `low`, or `info`." },
+    status: { type: "string", description: "`open`, `in_progress`, `snoozed`, `fixed`, or `ignored`." },
+    description: { type: "string", description: "What the issue is and why it matters." },
+    cvss: { type: "number | null", description: "CVSS base score when one applies." },
+    poc_reference: { type: "string | null", description: "Pointer to the stored proof of concept." },
+    affected_asset: { type: "string | null", description: "The URL, endpoint, or file the issue was confirmed on." },
+    cwe: { type: "string | null", description: "CWE identifier." },
+    cve: { type: "string | null", description: "CVE identifier, for findings that map to a known vulnerability." },
+    remediation_steps: { type: "string | null", description: "How to fix it." },
+    code_locations: { type: "array | null", description: "File and line references. Populated for whitebox runs and PR reviews." },
+    fix_pr_body: { type: "string | null", description: "The patch description prepared for a fix PR, when one is available." },
+    fix_pr_url: { type: "string | null", description: "Link to the opened fix PR. Null until one exists." },
+    created_at: { type: "string", description: "ISO 8601." },
+    accepted_risk_at: { type: "string | null", description: "When the risk was formally accepted." },
+    accepted_risk_by_user_id: { type: "string | null", description: "Who accepted it." },
+    locked: { type: "boolean", description: "Free trial: `true` means most fields above are omitted. See [withheld detail](/api/conventions#withheld-detail-on-the-free-trial)." },
+  }}
+/>
+
+<Callout type="warn" title="Check `locked` before reading detail">
+  On a free trial, a `critical` or `high` finding arrives with only `id`, `run_id`,
+  `domain_id`, `severity`, `status`, `created_at`, and `locked: true`. The other fields are
+  absent, not null. Code that reads `finding.title` unconditionally will break on a trial
+  organization.
+</Callout>
+
+## List findings
+
+`GET /findings` · scope `findings:read` · role `analyst`
+
+Every finding in the organization, with a severity breakdown of exactly the list returned.
+
+<TypeTable
+  type={{
+    status: { type: "query", description: "One of `open`, `in_progress`, `snoozed`, `fixed`, `ignored`. An unknown value returns `422 invalid_finding_status`." },
+    severity: { type: "query", description: "One of `critical`, `high`, `medium`, `low`, `info`. An unknown value returns `422 invalid_finding_severity`." },
+  }}
+/>
+
+Each finding in this response carries one extra field beyond the object above:
+
+<TypeTable
+  type={{
+    repository_id: { type: "string | null", description: "The repository the finding traces back to, resolved through its run's scope or its PR review." },
+  }}
+/>
+
+```bash
+curl "https://api.vulnix.dev/findings?status=open&severity=critical" \
+  -H "Authorization: Bearer $VULNIX_TOKEN"
+```
+
+```json
+{
+  "findings": [],
+  "severity_breakdown": { "critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0 }
+}
+```
+
+`severity_breakdown` always summarizes the list above it, so it reflects your filters rather
+than the organization total.
+
+## Get a finding
+
+`GET /findings/{finding_id}` · scope `findings:read` · role `analyst`
+
+The finding object plus its re-test history:
+
+<TypeTable
+  type={{
+    validate_fix_attempts: { type: "array", description: "Newest first. Always empty when the finding is locked." },
+    "…[].id": { type: "string", description: "Attempt ULID." },
+    "…[].status": { type: "string", description: "Where the re-test got to." },
+    "…[].note": { type: "string | null", description: "The note submitted when the re-test was requested." },
+    "…[].workflow_id": { type: "string | null", description: "Internal orchestration id." },
+    "…[].created_at": { type: "string", description: "When it was requested." },
+    "…[].completed_at": { type: "string | null", description: "Null while it is still running." },
+    "…[].evidence_s3_prefix": { type: "string | null", description: "Where the re-test evidence was stored." },
+  }}
+/>
+
+## Update a finding
+
+`PATCH /findings/{finding_id}` · scope `findings:write` · role `analyst`
+
+<TypeTable
+  type={{
+    status: { type: "string", description: "One of `open`, `in_progress`, `snoozed`, `fixed`, `ignored`." },
+    accepted_risk: { type: "boolean", description: "Must be `true` when set. Records who accepted and when." },
+  }}
+/>
+
+<Callout type="warn" title="Exactly one field per request">
+  Send `status` **or** `accepted_risk`, never both and never neither — either mistake returns
+  `422 invalid_finding_update_request`. They are independent axes: accepting the risk is not a
+  status, and a finding whose risk is accepted keeps whatever status it had.
+</Callout>
+
+```bash
+curl -X PATCH https://api.vulnix.dev/findings/$FINDING_ID \
+  -H "Authorization: Bearer $VULNIX_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "fixed"}'
+```
+
+Returns the updated finding object. Accepting a risk that is already accepted returns
+`409 finding_risk_already_accepted`.
+
+## Re-test a fix
+
+`POST /findings/{finding_id}/validate-fix` · scope `findings:write` · role `analyst`
+
+Re-runs the agent against this one finding to confirm the fix holds. Counts against the
+**run-starting** rate budget.
+
+<TypeTable
+  type={{
+    note: { type: "string | null", description: "Optional context, stored on the attempt — what was changed and where." },
+  }}
+/>
+
+Returns the new attempt object. A re-test already in flight for this finding returns
+`409 validate_fix_already_in_progress`. Poll `GET /findings/{finding_id}` and read the first
+entry of `validate_fix_attempts` for the outcome.
+
+## Open a fix PR
+
+`POST /findings/{finding_id}/create-fix-pr` · scope `findings:write` · role **`admin`**
+
+Opens a pull request against the connected repository with the prepared patch. No body. Counts
+against the run-starting rate budget.
+
+Returns the updated finding object with `fix_pr_url` populated.
+
+<TypeTable
+  type={{
+    finding_has_no_code_fix: { type: "422", description: "No patch was prepared for this finding — it is not a code-level issue, or the agent could not derive one." },
+    fix_pull_request_already_exists: { type: "409", description: "A fix PR is already open. Read `fix_pr_url` on the finding." },
+    fix_pull_request_creation_failed: { type: "400", description: "GitHub refused the push. Usually a revoked installation or a protected branch." },
+  }}
+/>
+
+## Export a finding timeline
+
+`GET /findings/{finding_id}/timeline/report` · scope `findings:read` · role `analyst`
+
+A PDF of the finding's full history: detection, then every re-test attempt in order. PDF is the
+only format. Returns `403 premium_detail_required` for a locked finding.
+
+## Dashboard overview
+
+`GET /dashboard/overview` · scope `findings:read` · no minimum role
+
+Pre-aggregated security posture — the numbers behind the console's dashboard, so you do not
+have to compute them from the raw finding list.
+
+<TypeTable
+  type={{
+    range: { type: "query", description: "`7d`, `30d`, or `90d`. Defaults to `30d`. An unknown value returns `422 invalid_dashboard_range`." },
+  }}
+/>
+
+Returns the security score and its delta, open issues, issues found, fix rate, pentest count, a
+severity breakdown, and the issues-over-time, open-vs-fixed, and MTTR series.
+
+<Callout type="info" title="Cached">
+  This response is cached briefly per organization and range, so two calls a second apart can
+  return identical numbers. Poll a run's status for live progress, not this.
+</Callout>

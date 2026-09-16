@@ -1,0 +1,313 @@
+---
+title: Scopes
+description: Define what the agent is allowed to test — targets, constraints, context, and attack surface — before starting a run.
+---
+
+A **scope** is the authorization boundary for a pentest: what may be tested, how hard, and
+when. A [run](/api/runs) always executes against one scope, so a scope is what you build first.
+
+## The scope object
+
+`GET /scopes/{scope_id}` returns the full picture:
+
+<TypeTable
+  type={{
+    id: { type: "string", description: "ULID." },
+    status: { type: "string", description: "`draft` until it has been authorized." },
+    scan_type: { type: "string", description: "`blackbox` (test a running target) or `whitebox` (also read the source)." },
+    scan_mode: { type: "string", description: "`quick`, `standard`, or `deep`. Derived from your plan — trial organizations get `quick`. Not settable." },
+    targets: { type: "array", description: "What will be tested. See below." },
+    surfaces: { type: "array", description: "Hosts discovered around the targets, and whether each may be touched." },
+    repository_id: { type: "string | null", description: "Source repository. Required for `whitebox`." },
+    context_text: { type: "string | null", description: "Free-text briefing handed to the agent." },
+    documents: { type: "array", description: "Uploaded reference files, as `{ id, filename, created_at }`." },
+    excluded_paths: { type: "array", description: "Paths the agent must not touch." },
+    rate_limit_rps: { type: "number | null", description: "Cap on requests per second against the target. Null means no explicit cap." },
+    testing_window_start: { type: "string | null", description: "Time of day testing may begin." },
+    testing_window_end: { type: "string | null", description: "Time of day testing must stop." },
+    testing_window_timezone: { type: "string | null", description: "IANA zone the window is expressed in." },
+    safe_mode: { type: "boolean", description: "Defaults to `true` — destructive techniques are held back." },
+    scope_enabled: { type: "boolean", description: "Attack-surface monitoring switch. Unrelated to whether a run may start." },
+    notify_email_on_completion: { type: "boolean", description: "Email when a run on this scope finishes." },
+    notify_email_cc: { type: "array", description: "Extra addresses to copy." },
+    estimated_duration_minutes: { type: "number", description: "Estimate for the configured scope." },
+    estimated_cost_usd: { type: "number", description: "Estimate for the configured scope." },
+  }}
+/>
+
+<Callout type="warn" title="`scope_enabled` is not a launch flag">
+  It toggles attack-surface monitoring. A run can start on a scope where it is `false`, and
+  turning it on does not make a scope launch-ready. The launch preconditions are
+  [on the Runs page](/api/runs#preconditions).
+</Callout>
+
+## Create a scope
+
+`POST /scopes` · scope `scopes:write` · role `admin`
+
+<TypeTable
+  type={{
+    scan_type: { type: "string", description: "`blackbox` (default) or `whitebox`. `whitebox` requires a paid plan — otherwise `403 whitebox_requires_paid_plan`." },
+  }}
+/>
+
+```bash
+curl -X POST https://api.vulnix.dev/scopes \
+  -H "Authorization: Bearer $VULNIX_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"scan_type": "blackbox"}'
+```
+
+```json
+{
+  "id": "01M2NMSFVBHZTYR842YNP45TF3",
+  "org_id": "01K5ADMINORG000000000000A",
+  "status": "draft"
+}
+```
+
+## List scopes
+
+`GET /scopes` · scope `scopes:read` · role `admin`
+
+A summary per scope — enough to pick one without fetching each in full:
+
+```json
+{
+  "scopes": [
+    {
+      "id": "01M2NMSFVBHZTYR842YNP45TF3",
+      "status": "draft",
+      "target_count": 1,
+      "all_targets_verified": false
+    }
+  ]
+}
+```
+
+`all_targets_verified` is the field to check before starting a run — it is precisely the
+condition that otherwise fails with `scope_verification_lost`.
+
+## Targets
+
+A target is one thing to test. It must be verified before a run can use it.
+
+<TypeTable
+  type={{
+    id: { type: "string", description: "Target ULID." },
+    domain_id: { type: "string | null", description: "The [domain](/api/domains) this target resolves to." },
+    target_type: { type: "string", description: "`domain`, `subdomain`, `ip_range`, or `api_spec`." },
+    value: { type: "string", description: "The host, range, or spec name." },
+    verification_status: { type: "string", description: "`pending` or `verified`." },
+    verification_failure_reason: { type: "string | null", description: "Why the last verification attempt failed." },
+    verification_txt_host: { type: "string | null", description: "DNS record name to create. Null once verified." },
+    verification_txt_value: { type: "string | null", description: "DNS record value to publish. Null once verified." },
+  }}
+/>
+
+### Add a target
+
+`POST /scopes/{scope_id}/targets` · scope `scopes:write` · role `admin`
+
+<TypeTable
+  type={{
+    target_type: { type: "string", required: true, description: "`domain`, `subdomain`, or `ip_range`." },
+    value: { type: "string", required: true, description: "The host or range." },
+  }}
+/>
+
+```json
+{
+  "id": "01M2NMT9770P4XX9AB8PCZZGB1",
+  "domain_id": "01M2NMSF7GJY6KMMKZJ0EA0N47",
+  "target_type": "domain",
+  "value": "acme-demo.com",
+  "verification_status": "pending",
+  "verification_failure_reason": null,
+  "verification_txt_host": "_vulnix-verify.acme-demo.com",
+  "verification_txt_value": "vulnix-verify=86b64bbb2b229da31a35e9f3f63253b7"
+}
+```
+
+Adding a target for a host you have not registered creates the [domain](/api/domains) record
+too, which is why a `domain_id` comes back. An unrecognized `target_type` or value returns
+`422 invalid_scope_target`.
+
+### Verify a target
+
+`POST /scopes/{scope_id}/targets/{target_id}/verify` · scope `scopes:write` · role `admin`
+
+Re-checks the published proof and returns the updated target. Publish
+`verification_txt_host` / `verification_txt_value` as a DNS TXT record first. To verify by
+file or meta tag instead, use the [domain verification endpoint](/api/domains#verify-a-domain),
+which takes a `method`.
+
+### Upload an API spec
+
+`POST /scopes/{scope_id}/targets/api-spec` · scope `scopes:write` · role `admin`
+
+`multipart/form-data` with a single `file` field. Returns a target object with `target_type`
+of `api_spec`. Giving the agent a spec is the single highest-leverage thing you can do for an
+API target — it stops discovery being guesswork.
+
+```bash
+curl -X POST https://api.vulnix.dev/scopes/$SCOPE_ID/targets/api-spec \
+  -H "Authorization: Bearer $VULNIX_TOKEN" \
+  -F "file=@openapi.json"
+```
+
+### Remove a target
+
+`DELETE /scopes/{scope_id}/targets/{target_id}` · scope `scopes:write` · role `admin`
+
+```json
+{ "status": "removed" }
+```
+
+## Constraints
+
+`PATCH /scopes/{scope_id}/constraints` · scope `scopes:write` · role `admin`
+
+Sparse — send only what you are changing. Invalid combinations return
+`422 invalid_scope_constraints`.
+
+<TypeTable
+  type={{
+    excluded_paths: { type: "array", description: "Paths the agent must not touch." },
+    rate_limit_rps: { type: "number | null", description: "Requests per second cap." },
+    testing_window_start: { type: "string | null", description: "Time of day, e.g. `02:00`." },
+    testing_window_end: { type: "string | null", description: "Time of day." },
+    testing_window_timezone: { type: "string | null", description: "IANA zone, e.g. `Europe/Berlin`." },
+    safe_mode: { type: "boolean | null", description: "Hold back destructive techniques." },
+  }}
+/>
+
+```bash
+curl -X PATCH https://api.vulnix.dev/scopes/$SCOPE_ID/constraints \
+  -H "Authorization: Bearer $VULNIX_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "excluded_paths": ["/admin/billing", "/webhooks"],
+    "rate_limit_rps": 5,
+    "testing_window_start": "02:00",
+    "testing_window_end": "05:00",
+    "testing_window_timezone": "Europe/Berlin"
+  }'
+```
+
+Returns `{ id, status }` plus every constraint field.
+
+## Context and documents
+
+Context is what turns a generic scan into a targeted one. Give the agent what a new engineer on
+your team would need.
+
+### Set context text
+
+`PATCH /scopes/{scope_id}/context` · scope `scopes:write` · role `admin`
+
+```json
+{ "context_text": "Multi-tenant SaaS. Tenant id travels in the X-Org header, not the JWT." }
+```
+
+Returns `{ id, context_text }`. Invalid content returns `422 invalid_scope_context`.
+
+### Upload a document
+
+`POST /scopes/{scope_id}/documents` · scope `scopes:write` · role `admin`
+
+`multipart/form-data` with a single `file` field. Returns
+`{ id, filename, created_at }`.
+
+`DELETE /scopes/{scope_id}/documents/{document_id}` removes one, returning
+`{ "status": "removed" }`.
+
+## Attack surface
+
+Surfaces are hosts discovered around your targets. Classifying them is how you say what the
+agent may touch.
+
+<TypeTable
+  type={{
+    id: { type: "string", description: "Surface ULID." },
+    host: { type: "string", description: "The hostname." },
+    source: { type: "string", description: "`first_party` (yours) or `third_party` (someone else's)." },
+    classification: { type: "string", description: "`attackable`, `accessible`, or `out_of_scope`." },
+  }}
+/>
+
+<TypeTable
+  type={{
+    attackable: { description: "Test it actively. Only valid for `first_party` hosts — marking a third-party host attackable returns `422 invalid_scope_surface`." },
+    accessible: { description: "May be reached and observed, but not actively attacked. The default for third-party hosts." },
+    out_of_scope: { description: "Leave it alone entirely." },
+  }}
+/>
+
+### Add a surface
+
+`POST /scopes/{scope_id}/surfaces` · scope `scopes:write` · role `admin`
+
+<TypeTable
+  type={{
+    host: { type: "string", required: true, description: "Hostname. Cannot be blank." },
+    source: { type: "string", required: true, description: "`first_party` or `third_party`." },
+  }}
+/>
+
+Classification is assigned for you — `attackable` for first-party, `accessible` for
+third-party. Change it with the endpoint below.
+
+### Reclassify a surface
+
+`PATCH /scopes/{scope_id}/surfaces/{surface_id}` · scope `scopes:write` · role `admin`
+
+```json
+{ "classification": "out_of_scope" }
+```
+
+### Exclude every surface from one source
+
+`POST /scopes/{scope_id}/surfaces/exclude-all` · scope `scopes:write` · role `admin`
+
+```json
+{ "source": "third_party" }
+```
+
+Marks every surface from that source `out_of_scope` in one call. Returns
+`{ "status": "excluded" }`. This is the safe default for third-party hosts when you have not
+reviewed them individually.
+
+### Toggle monitoring
+
+`PATCH /scopes/{scope_id}/scope-enabled` · scope `scopes:write` · role `admin`
+
+```json
+{ "enabled": true }
+```
+
+Returns `{ id, scope_enabled, surfaces }`.
+
+## Source repository
+
+`POST /scopes/{scope_id}/repository` · scope `scopes:write` · role `admin`
+
+```json
+{ "repository_id": "01M2N…" }
+```
+
+Required before a `whitebox` run can start. Returns `{ id, repository_id }`. An id that is not
+a connected repository returns `422 invalid_scope_repository`.
+
+## Completion notifications
+
+`PATCH /scopes/{scope_id}/notify-on-completion` · scope `scopes:write` · role `admin`
+
+<TypeTable
+  type={{
+    enabled: { type: "boolean", required: true, description: "Email when a run on this scope finishes." },
+    cc_emails: { type: "array | null", description: "Additional recipients." },
+  }}
+/>
+
+Returns `{ id, notify_email_on_completion, notify_email_cc }`.

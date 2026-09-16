@@ -1,5 +1,15 @@
 {
   "title": "API",
   "defaultOpen": true,
-  "pages": ["authentication"]
+  "pages": [
+    "authentication",
+    "conventions",
+    "runs",
+    "findings",
+    "scopes",
+    "domains",
+    "repositories",
+    "pr-reviews",
+    "knowledge"
+  ]
 }

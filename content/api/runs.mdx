@@ -1,0 +1,286 @@
+---
+title: Runs
+description: Start a pentest, follow it while it executes, and pull its findings, agent trace, and signed report.
+---
+
+A **run** is one execution of the agent against a [scope](/api/scopes). Starting a run charges
+credits, so this is the resource where getting the preconditions right matters most.
+
+## The run object
+
+<TypeTable
+  type={{
+    id: { type: "string", description: "ULID." },
+    scope_id: { type: "string", description: "The scope this run executed against." },
+    status: { type: "string", description: "`queued`, `running`, `finished`, `released`, `failed`, or `stopped`." },
+    workflow_id: { type: "string | null", description: "Internal orchestration id. Useful only when quoting a run to support." },
+    created_at: { type: "string", description: "ISO 8601." },
+    completed_at: { type: "string | null", description: "Set once the run reaches a terminal status." },
+    cost_usd: { type: "number | null", description: "Measured model spend. Null until the run completes. This is not what you were charged — see `credits_charged`." },
+  }}
+/>
+
+### Statuses
+
+<TypeTable
+  type={{
+    queued: { description: "Accepted and waiting for capacity. `queue_position` on the detail endpoint counts down." },
+    running: { description: "The agent is executing." },
+    finished: { description: "Completed normally." },
+    released: { description: "Completed and its sandbox has been torn down. Also terminal — treat it exactly like `finished`." },
+    failed: { description: "An internal step exhausted its retries. Findings produced before the failure are still readable." },
+    stopped: { description: "Stopped by a person or by `POST /runs/{run_id}/stop`. Partial results are kept." },
+  }}
+/>
+
+`finished`, `released`, `failed`, and `stopped` are **terminal**. Poll until the status is one
+of those four, not until it equals `finished` — a run that ends any other way would poll
+forever.
+
+<Callout type="warn" title="A failed or stopped run still has data">
+  Partial findings, the agent trace, and the phase timeline all survive. Do not discard a run
+  because it did not reach `finished`.
+</Callout>
+
+## Start a run
+
+`POST /scopes/{scope_id}/runs` · scope `runs:write` · role `admin` · returns `201`
+
+<TypeTable
+  type={{
+    idempotency_key: { type: "string", required: true, description: "8–128 characters, `[A-Za-z0-9_-]` only. Required." },
+    test_user_selections: { type: "array", description: "Credentials for the agent to authenticate with, as `{ domain_id, test_user_id }` objects. See [test users](/api/domains#test-users)." },
+    custom_headers: { type: "array", description: "Headers sent with every request the agent makes, as `{ name, value }` objects. Use for a staging bypass header or an API key." },
+  }}
+/>
+
+```bash
+curl -X POST https://api.vulnix.dev/scopes/01M2NMSFVBHZTYR842YNP45TF3/runs \
+  -H "Authorization: Bearer $VULNIX_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "idempotency_key": "deploy-a1b2c3d4",
+    "custom_headers": [{ "name": "X-Staging-Bypass", "value": "..." }]
+  }'
+```
+
+```json
+{
+  "id": "01M2NP4K8QW3ZR7YT2XVB9CDEF",
+  "scope_id": "01M2NMSFVBHZTYR842YNP45TF3",
+  "status": "queued",
+  "workflow_id": "pentest-01M2NP4K8QW3ZR7YT2XVB9CDEF",
+  "created_at": "2026-09-16T18:04:11.229104+00:00",
+  "completed_at": null,
+  "cost_usd": null
+}
+```
+
+### Idempotency is mandatory, and it is load-bearing
+
+`idempotency_key` is required because starting a run spends money. If a run already exists for
+the key, **that existing run is returned** — no second run, no second charge. A network timeout
+where you never saw the response is therefore safe to retry with the same key.
+
+Derive the key from the thing that caused the run — a commit SHA, a deploy id, a date — not
+from a random value generated at call time, or a retry after a timeout will mint a new key and
+charge you twice.
+
+<Callout type="info" title="Credits are charged before the run starts">
+  The charge happens up front, after the checks below pass. A run that is refused for a failed
+  precondition is never charged.
+</Callout>
+
+### Preconditions
+
+They are checked in this order, and each returns `422`:
+
+<Steps>
+
+<Step>
+**The scope must have targets.** A blackbox scope with none returns `scope_has_no_targets`.
+A whitebox scope may have none — its repository is the target — but must have a repository set,
+or it returns `whitebox_pentest_missing_repository`.
+</Step>
+
+<Step>
+**Every target must still be verified.** Any target not in `verified` returns
+`scope_verification_lost`, with `details.target_ids` naming them. Verification is re-checked at
+launch, not just when the target was added, so a DNS record someone deleted last month surfaces
+here.
+</Step>
+
+<Step>
+**The organization must be able to pay.** No active plan or unexpired trial returns
+`credits_exhausted`, with `details.required_usd` and `details.available_usd`.
+</Step>
+
+</Steps>
+
+```json
+{
+  "error": {
+    "code": "scope_verification_lost",
+    "message": "one or more targets have lost verification since this scope was authorized",
+    "details": { "target_ids": ["01M2NMT9770P4XX9AB8PCZZGB1"] }
+  },
+  "request_id": "01M2NMT9NFC1THFAPJVQVB5FPC"
+}
+```
+
+## List runs
+
+`GET /runs` · scope `runs:read` · role `admin`
+
+Every run in the organization, most recent first. Each entry is a run object plus a summary of
+what it was pointed at:
+
+<TypeTable
+  type={{
+    scan_type: { type: "string", description: "`blackbox` or `whitebox`." },
+    target_summary: { type: "object", description: "`{ values: string[], total_count: number }` — up to two target values for display, plus the true count." },
+  }}
+/>
+
+```json
+{
+  "runs": [
+    {
+      "id": "01M2NP4K8QW3ZR7YT2XVB9CDEF",
+      "scope_id": "01M2NMSFVBHZTYR842YNP45TF3",
+      "status": "finished",
+      "workflow_id": "pentest-01M2NP4K8QW3ZR7YT2XVB9CDEF",
+      "created_at": "2026-09-16T18:04:11.229104+00:00",
+      "completed_at": "2026-09-16T18:49:37.004881+00:00",
+      "cost_usd": 4.13,
+      "scan_type": "blackbox",
+      "target_summary": { "values": ["acme-demo.com"], "total_count": 1 }
+    }
+  ]
+}
+```
+
+## Get a run
+
+`GET /runs/{run_id}` · scope `runs:read` · role `admin`
+
+The run object, the same `target_summary`, and two fields the list does not carry:
+
+<TypeTable
+  type={{
+    queue_position: { type: "number | null", description: "Place in the global queue. Non-null only while `status` is `queued`; counts down as the queue advances." },
+    credits_charged: { type: "number | null", description: "What this run actually cost you, fixed at launch. Distinct from `cost_usd`, which is measured model spend." },
+  }}
+/>
+
+## Findings from a run
+
+`GET /runs/{run_id}/findings` · scope `runs:read` · role `admin`
+
+```json
+{
+  "findings": [],
+  "severity_breakdown": { "critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0 }
+}
+```
+
+`findings` holds [finding objects](/api/findings#the-finding-object). `severity_breakdown`
+counts exactly the findings in that array. An empty array is a valid `200` — a clean run is a
+result, not an error.
+
+## Phase timeline
+
+`GET /runs/{run_id}/phases` · scope `runs:read` · role `analyst`
+
+What the agent planned and how far it got, reduced to one final state per task:
+
+```json
+{
+  "phases": [
+    { "task_id": "t1", "title": "Map authentication surface", "status": "completed" },
+    { "task_id": "t2", "title": "Probe session handling", "status": "in_progress" }
+  ]
+}
+```
+
+Readable during and after the run. Returns an empty array once the underlying event stream ages
+out after 7 days.
+
+## Agent trace
+
+`GET /runs/{run_id}/agent-trace` · scope `runs:read` · role `analyst`
+
+The tree of agents that worked the run, and what each one did.
+
+<TypeTable
+  type={{
+    agent_count: { type: "number", description: "Number of nodes." },
+    "nodes[].id": { type: "string", description: "Node ULID." },
+    "nodes[].agent_id": { type: "string", description: "Agent identity." },
+    "nodes[].parent_agent_id": { type: "string | null", description: "Null for the root. Build the tree from this." },
+    "nodes[].name": { type: "string", description: "Agent name." },
+    "nodes[].status": { type: "string", description: "Agent status." },
+    "nodes[].task": { type: "string", description: "What this agent was asked to do. Empty string when locked." },
+    "nodes[].skills": { type: "array", description: "Capabilities the agent had." },
+    "nodes[].timeline": { type: "array", description: "Messages and tool calls. Empty when locked." },
+    "nodes[].message_count": { type: "number", description: "Always accurate, even when locked." },
+    "nodes[].tool_call_count": { type: "number", description: "Always accurate, even when locked." },
+    "nodes[].locked": { type: "boolean", description: "Free trial: structure stays, transcript is withheld. Counts stay accurate." },
+  }}
+/>
+
+## Report
+
+`GET /runs/{run_id}/report?format=…` · scope `runs:read` · role `admin`
+
+Returns the file itself, not JSON, with `Content-Disposition: attachment`.
+
+<TypeTable
+  type={{
+    pdf: { type: "application/pdf", description: "The signed, human-readable report." },
+    docx: { type: "…wordprocessingml.document", description: "Same content, editable." },
+    json: { type: "application/json", description: "The full run projection — every finding with full detail." },
+    sarif: { type: "application/sarif+json", description: "For code-scanning tools. Served byte-for-byte as the engine emitted it." },
+  }}
+/>
+
+```bash
+curl -L "https://api.vulnix.dev/runs/$RUN_ID/report?format=pdf" \
+  -H "Authorization: Bearer $VULNIX_TOKEN" \
+  -o report.pdf
+```
+
+An unsupported `format` returns `422 invalid_report_format`. On a free trial, a run containing
+any `critical` or `high` finding returns `403 premium_detail_required` for every format,
+including SARIF.
+
+## Compare two runs
+
+`GET /runs/compare?run_a=…&run_b=…` · scope `runs:read` · role `admin`
+
+Both parameters are required. Returns three arrays of finding objects — what regression testing
+actually needs:
+
+<TypeTable
+  type={{
+    new: { type: "array", description: "Present in `run_b`, absent from `run_a`." },
+    fixed: { type: "array", description: "Present in `run_a`, absent from `run_b`." },
+    persisted: { type: "array", description: "Present in both." },
+  }}
+/>
+
+## Stop a run
+
+`POST /runs/{run_id}/stop` · scope `runs:write` · role `admin`
+
+Returns the updated run object. A run already in a terminal status returns
+`409 run_not_stoppable`. Findings produced before the stop are kept, and credits already
+charged are not refunded.
+
+## Live events
+
+`GET /runs/{run_id}/events` · scope `runs:read` · role `admin`
+
+Server-Sent Events for the duration of the run. See
+[live event streams](/api/conventions#live-event-streams) for resumption. Polling
+`GET /runs/{run_id}` every few seconds is simpler and is the right choice for CI.

@@ -1,0 +1,190 @@
+---
+title: Repositories
+description: Connect GitHub repositories, manage per-repository PR-review policy, and revoke access.
+---
+
+A connected **repository** is what makes whitebox pentesting and
+[automated PR review](/api/pr-reviews) possible. Connecting one is a GitHub App installation, so
+it needs a browser once; everything after that is scriptable.
+
+## The repository object
+
+<TypeTable
+  type={{
+    id: { type: "string", description: "ULID. This is the id every other endpoint takes." },
+    provider: { type: "string", description: "`github`. The only provider today." },
+    external_repo_id: { type: "string", description: "The provider's own id for the repository." },
+    full_name: { type: "string", description: "`owner/name`." },
+    default_branch: { type: "string", description: "Branch PR reviews diff against." },
+    status: { type: "string", description: "`connected` or `revoked`." },
+    connected_by: { type: "string", description: "User id who connected it." },
+    connected_at: { type: "string", description: "ISO 8601." },
+    auto_review_enabled: { type: "boolean", description: "Review every new PR automatically." },
+    approve_clean_prs_policy: { type: "string", description: "`default`, `on`, or `off`." },
+    block_on_findings_policy: { type: "string", description: "`default`, `on`, or `off`." },
+    rereview_on_push_policy: { type: "string", description: "`default`, `on`, or `off`." },
+    effective_approve_clean_prs: { type: "boolean", description: "Resolved value — read this, not the policy." },
+    effective_block_on_findings: { type: "boolean", description: "Resolved value." },
+    effective_rereview_on_push: { type: "boolean", description: "Resolved value." },
+  }}
+/>
+
+### Policy fields versus effective fields
+
+Each policy is three-valued. `default` defers to the
+[organization default](/api/organization#pr-review-defaults); `on` and `off` override it for
+this repository alone. The `effective_*` booleans are that resolution already done for you.
+
+To know what will actually happen on the next PR, read `effective_*`. To know whether this
+repository overrides the organization, read the policy field. Reading a policy field to predict
+behavior is the mistake to avoid — `default` tells you nothing on its own.
+
+<TypeTable
+  type={{
+    approve_clean_prs: { description: "Post an approving GitHub review when a PR comes back clean." },
+    block_on_findings: { description: "Fail the GitHub check when the review finds something — this is what blocks a merge." },
+    rereview_on_push: { description: "Re-review automatically when new commits land on an open PR." },
+  }}
+/>
+
+## Connect a repository
+
+The GitHub App has to be installed by a human. Three calls, one of them in a browser:
+
+<Steps>
+
+<Step>
+### Get an install URL
+
+`POST /repositories/connect/start` · scope `repositories:write` · role `admin`
+
+No body.
+
+```json
+{ "install_url": "https://github.com/apps/vulnix/installations/new?state=…" }
+```
+</Step>
+
+<Step>
+### The user installs the app
+
+Send them to `install_url`. GitHub returns them with an `installation_id` and the `state` you
+issued.
+</Step>
+
+<Step>
+### Claim the installation
+
+`POST /repositories/connect` · scope `repositories:write` · role `admin` · returns `201`
+
+```json
+{ "installation_id": "48210991", "state": "…" }
+```
+
+```json
+{ "installation_id": "48210991" }
+```
+
+A `state` that does not match returns `422 invalid_github_connect_state`. An installation
+already claimed by another organization returns `409 github_installation_already_claimed`.
+</Step>
+
+</Steps>
+
+## List installations
+
+`GET /repositories/installations` · scope `repositories:read` · role `admin`
+
+```json
+{
+  "installations": [
+    {
+      "installation_id": "48210991",
+      "account_login": "acme-inc",
+      "connected_at": "2026-09-16T17:11:02.884120+00:00"
+    }
+  ]
+}
+```
+
+## See what is available to add
+
+`GET /repositories/available` · scope `repositories:read` · role `admin`
+
+```json
+{ "has_installation": true, "repositories": [] }
+```
+
+Everything the installation can see but that you have not added yet. `has_installation: false`
+means no GitHub App is installed — start at [connect](#connect-a-repository) rather than
+treating the empty list as "no repositories".
+
+## Add repositories
+
+`POST /repositories` · scope `repositories:write` · role `admin` · returns `201`
+
+<TypeTable
+  type={{
+    installation_id: { type: "string", required: true, description: "Which installation these come from." },
+    repos: { type: "array", required: true, description: "Entries as returned by `GET /repositories/available`. Pass them through unchanged." },
+  }}
+/>
+
+Returns `{ "repositories": [...] }` with the full objects for everything now connected. An
+installation that is no longer valid returns `422 github_installation_invalid`.
+
+## List and read
+
+`GET /repositories` · scope `repositories:read` · role `admin`
+
+```json
+{ "repositories": [] }
+```
+
+`GET /repositories/{repository_id}` returns one repository object.
+
+## Update policy
+
+`PATCH /repositories/{repository_id}` · scope `repositories:write` · role `admin`
+
+Sparse — omitted fields are unchanged.
+
+<TypeTable
+  type={{
+    auto_review_enabled: { type: "boolean | null", description: "Review new PRs automatically." },
+    approve_clean_prs_policy: { type: "string | null", description: "`default`, `on`, or `off`." },
+    block_on_findings_policy: { type: "string | null", description: "`default`, `on`, or `off`." },
+    rereview_on_push_policy: { type: "string | null", description: "`default`, `on`, or `off`." },
+  }}
+/>
+
+```bash
+curl -X PATCH https://api.vulnix.dev/repositories/$REPO_ID \
+  -H "Authorization: Bearer $VULNIX_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"block_on_findings_policy": "on", "approve_clean_prs_policy": "default"}'
+```
+
+Returns the updated repository object with `effective_*` recomputed. Any value outside the
+three allowed returns `422 invalid_request`.
+
+## Revoke a repository
+
+`POST /repositories/{repository_id}/revoke` · scope `repositories:write` · role `admin`
+
+Stops all review activity and drops stored access. Returns the repository object with `status`
+of `revoked`. Revoking one already revoked returns `409 repository_already_revoked`.
+
+Findings and PR reviews produced while it was connected are kept — revoking ends future access,
+it does not erase history.
+
+## Disconnect an installation
+
+`POST /repositories/installations/{installation_id}/disconnect` · scope `repositories:write` · role `admin`
+
+```json
+{ "ok": true }
+```
+
+Removes the whole installation and with it every repository under it. Use
+[revoke](#revoke-a-repository) to drop a single repository instead.

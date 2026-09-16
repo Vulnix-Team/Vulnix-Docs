@@ -1,0 +1,247 @@
+---
+title: Conventions
+description: Base URL, authorization model, object shapes, errors, and rate limits — everything that is true of every Vulnix API endpoint.
+---
+
+Everything on this page holds for every endpoint in the reference. Read it once and the
+per-resource pages become a list of paths and fields.
+
+## Base URL
+
+```
+https://api.vulnix.dev
+```
+
+There is no version segment in the path. Treat responses as open maps: new fields are added
+over time, so parse the ones you need and ignore the rest rather than failing on an unknown key.
+
+## Authorization
+
+Every request needs a token in an `Authorization` header. See
+[Authentication](/api/authentication) for how to create one.
+
+```bash
+curl https://api.vulnix.dev/runs \
+  -H "Authorization: Bearer vnx_your_token_here"
+```
+
+### Two gates, not one
+
+A request has to pass **both** checks, and they are independent:
+
+<TypeTable
+  type={{
+    Scope: { description: "What this token was allowed to do when you created it. Missing scope → 403 `api_token_scope_missing`." },
+    Role: { description: "What the token's creator can do in the organization. Too low → 403 `insufficient_role`." },
+  }}
+/>
+
+This catches people out, so it is worth stating plainly: **ticking a scope does not grant
+access on its own.** A token created by a `viewer` carrying `runs:read` still cannot call
+`GET /runs`, because that endpoint requires `admin`. The scope narrows the creator's role; it
+never widens it.
+
+Roles rank `owner` > `admin` > `analyst` > `viewer`. Each endpoint in the reference lists the
+minimum role it needs alongside its scope. Broadly:
+
+<TypeTable
+  type={{
+    "Runs, Domains, Repositories, Scopes, Team": { type: "admin", description: "Reading a run's agent trace or phase timeline is the exception — `analyst` is enough." },
+    "Findings, PR Reviews": { type: "analyst", description: "Opening a fix PR needs `admin`." },
+    "Knowledge (read), Billing status": { type: "viewer", description: "Writing knowledge entries needs `admin`." },
+    "Deleting the organization": { type: "owner", description: "The only `owner`-gated endpoint." },
+  }}
+/>
+
+### Endpoints no token can reach
+
+Authorization is deny-by-default: a token may call an endpoint only if that endpoint declares
+a scope. Everything else — session management, token management, anything that moves money —
+returns `403 api_token_route_not_allowed` no matter which scopes the token carries. There is no
+scope that unlocks them. See
+[What tokens cannot do](/api/authentication#what-tokens-cannot-do).
+
+## Requests
+
+Send `Content-Type: application/json` on any request with a body. Two endpoints take a file
+upload as `multipart/form-data` instead — uploading a scope document and a scope API spec —
+and both are marked as such in the reference.
+
+`PATCH` bodies are sparse: send only the fields you are changing. A field you omit is left
+alone; a field you set to `null` is cleared where the field is nullable.
+
+## Responses
+
+There is no envelope around successful responses. A single object is returned at the top
+level:
+
+```json
+{ "id": "01M2NMSFVBHZTYR842YNP45TF3", "status": "draft", "org_id": "01K5ADM…" }
+```
+
+A collection comes back under a key named for the resource, leaving room for summary data
+alongside it:
+
+```json
+{
+  "findings": [],
+  "severity_breakdown": { "critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0 }
+}
+```
+
+Deletes and other actions with nothing to return answer with a status marker:
+
+```json
+{ "status": "deleted" }
+```
+
+### Identifiers
+
+Every id is a 26-character [ULID](https://github.com/ulid/spec) — `01M2NMSFVBHZTYR842YNP45TF3`.
+They sort lexicographically by creation time, so ordering a list of ids as strings orders them
+chronologically. Treat them as opaque strings; do not parse them.
+
+### Timestamps
+
+ISO 8601 with a UTC offset — `2026-09-16T17:20:04.708773+00:00`. Fields that can be unset
+(`completed_at`, `last_tested_at`) are `null` rather than absent.
+
+### Collections
+
+List endpoints return the **whole collection** in one response — there is no pagination, no
+cursor, and no `limit` parameter. For an organization with years of history that response can
+be large, so fetch lists on a schedule rather than in a request path where latency matters.
+
+Filtering exists only where the reference documents a query parameter for it, `GET /findings`
+being the main one. Everything else filters client-side.
+
+## Errors
+
+Every failure uses one envelope, whatever produced it:
+
+```json
+{
+  "error": {
+    "code": "api_token_scope_missing",
+    "message": "this API token does not carry the 'findings:read' scope",
+    "details": { "required_scope": "findings:read", "granted_scopes": ["runs:read"] }
+  },
+  "request_id": "01M2NMVMHGFJF864KD2GP7TP51"
+}
+```
+
+Branch on `code`, never on `message` — messages are written for humans and get reworded.
+`details` is shaped per code and is `{}` when there is nothing useful to add.
+
+`request_id` identifies the exact request in our logs. Log it, and quote it when contacting
+support.
+
+### Validation failures
+
+A malformed body returns `422` with `code: "invalid_request"` and a `fields` array pointing at
+each offending value:
+
+```json
+{
+  "error": {
+    "code": "invalid_request",
+    "message": "The request contains invalid values.",
+    "details": {
+      "fields": [
+        {
+          "location": ["body", "idempotency_key"],
+          "message": "String should have at least 8 characters",
+          "type": "string_too_short"
+        }
+      ]
+    }
+  },
+  "request_id": "01M2NMTA1P76163FFX64PTY3MT"
+}
+```
+
+### Authorization and rate-limit codes
+
+<TypeTable
+  type={{
+    invalid_session_token: { type: "401", description: "No `Authorization` header at all." },
+    invalid_api_token: { type: "401", description: "Unknown, revoked, or expired token — the same error for all three, deliberately. Mint a new one." },
+    api_token_scope_missing: { type: "403", description: "Valid token, missing scope. `details.required_scope` names what to tick." },
+    insufficient_role: { type: "403", description: "The scope is present but the creator's role is too low for this endpoint." },
+    api_token_route_not_allowed: { type: "403", description: "Console-only endpoint. No scope unlocks it." },
+    premium_detail_required: { type: "403", description: "Free trial: the export bundles detail the plan withholds. See below." },
+    rate_limited: { type: "429", description: "Slow down. `Retry-After` says how long." },
+  }}
+/>
+
+### Common per-resource codes
+
+<TypeTable
+  type={{
+    "404 `*_not_found`": { description: "`run_not_found`, `finding_not_found`, `domain_not_found`, `repository_not_found`, `scope_not_found`, `pr_review_not_found`, `knowledge_entry_not_found`. A record in another organization returns exactly this, never a 403 — the API never confirms that an id it cannot show you exists." },
+    "409 conflict": { description: "The record exists but is in the wrong state: `run_not_stoppable`, `fix_pull_request_already_exists`, `finding_risk_already_accepted`, `repository_already_revoked`, `domain_delete_blocked`, `validate_fix_already_in_progress`." },
+    "422 unprocessable": { description: "The request is well-formed but the operation is not allowed yet: `scope_has_no_targets`, `scope_verification_lost`, `whitebox_pentest_missing_repository`, `credits_exhausted`, `invalid_finding_status`." },
+  }}
+/>
+
+## Rate limits
+
+Two budgets, counted separately per token:
+
+<TypeTable
+  type={{
+    "Standard requests": { type: "120 / minute", description: "Reads and ordinary writes." },
+    "Run-starting requests": { type: "10 / minute", description: "Starting a pentest, re-testing a fix, opening a fix PR." },
+  }}
+/>
+
+Because they are separate, polling a run's status can never exhaust your ability to start one.
+
+Every response carries the current state of the budget it was counted against:
+
+```http
+x-ratelimit-limit: 120
+x-ratelimit-remaining: 119
+x-ratelimit-reset: 60
+```
+
+`x-ratelimit-reset` is seconds until the window rolls over. Exceeding a budget returns `429`
+with `Retry-After` carrying the same number:
+
+```json
+{
+  "error": {
+    "code": "rate_limited",
+    "message": "too many requests - slow down and retry after the window resets",
+    "details": { "retry_after_seconds": 27 }
+  },
+  "request_id": "01M2NMWN47R1WQ0793T3NJ1DAT"
+}
+```
+
+Retry on `Retry-After`, not on a fixed backoff — the header is exact, so sleeping for it wastes
+no time and guarantees the next request lands in a fresh window.
+
+## Withheld detail on the free trial
+
+On a free trial, findings rated `critical` or `high` come back with a reduced shape: `id`,
+`run_id`, `domain_id`, `severity`, `status`, `created_at`, and `locked: true`. The title,
+description, CVSS, proof of concept, and remediation steps are omitted rather than blanked.
+
+Every finding object carries `locked`, so the check is `if (finding.locked)` rather than
+inspecting the plan. Agent-trace nodes follow the same rule: structure stays, the transcript is
+withheld. Report and timeline exports refuse outright with `403 premium_detail_required` when
+the run contains a locked finding, because a rendered file cannot be redacted field-by-field.
+
+On a paid plan `locked` is always `false` and nothing is withheld.
+
+## Live event streams
+
+Three endpoints stream [Server-Sent Events](https://developer.mozilla.org/docs/Web/API/Server-sent_events)
+instead of returning JSON: a run's events, a PR review's events, and nothing else. They respond
+with `Content-Type: text/event-stream` and stay open.
+
+Each event carries a Redis stream id as its SSE id. Send the last one you saw back as
+`Last-Event-ID` to resume without gaps — a browser `EventSource` does this automatically, and a
+server-side consumer should do it explicitly on reconnect. Events live for 7 days, after which
+the stream replays as empty rather than erroring.

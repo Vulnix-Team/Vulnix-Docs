@@ -1,0 +1,116 @@
+---
+title: Knowledge
+description: Give the agent durable context about your system so every future run starts informed rather than blind.
+---
+
+**Knowledge** is what the agent is told before it starts. Findings are the output of a run;
+knowledge is the input to every run after it. An entry written once applies to everything that
+follows.
+
+## The knowledge entry object
+
+<TypeTable
+  type={{
+    id: { type: "string", description: "ULID." },
+    entry_type: { type: "string", description: "One of the five categories below." },
+    description: { type: "string", description: "The content itself. Up to 20,000 characters." },
+    source: { type: "string", description: "`manual` (you wrote it) or `internal` (the agent did)." },
+    source_run_id: { type: "string | null", description: "The run that produced an `internal` entry." },
+    domain_ids: { type: "array", description: "Domains this applies to. Empty means all." },
+    repository_ids: { type: "array", description: "Repositories this applies to. Empty means all." },
+    applies_globally: { type: "boolean", description: "True when both id lists are empty." },
+    created_at: { type: "string", description: "ISO 8601." },
+    updated_at: { type: "string", description: "ISO 8601." },
+  }}
+/>
+
+### Entry types
+
+A closed set, because the type decides how the entry is presented to the agent. "Accepted
+risks" and "testing rules" read very differently in a run instruction, and free-form tags would
+make that grouping meaningless.
+
+<TypeTable
+  type={{
+    business_logic: { description: "How the product is meant to work. Roles, tenancy, what a given user should never be able to do — the rules an outsider cannot infer and whose violation is the finding." },
+    critical_assets: { description: "What actually matters if it leaks. Point the agent at the crown jewels instead of letting it weight everything equally." },
+    testing_rules: { description: "Operational boundaries: endpoints to avoid, rate expectations, anything that would page someone at 3am." },
+    tech_stack: { description: "Frameworks, gateways, auth libraries. Narrows the search from every known technique to the ones your stack is actually exposed to." },
+    accepted_risks: { description: "Issues you have already decided to live with. Stops them being re-reported every run." },
+  }}
+/>
+
+### `manual` versus `internal`
+
+`manual` entries are yours. `internal` entries are written by the agent from its own notes after
+a run. Both feed the next run identically — the distinction is provenance and editability:
+**an `internal` entry cannot be edited or replaced**, only deleted. Attempting to update one
+returns `409 knowledge_entry_not_editable`.
+
+## List entries
+
+`GET /knowledge` · scope `knowledge:read` · role `viewer`
+
+<TypeTable
+  type={{
+    source: { type: "query", description: "`manual` or `internal`. Omit for both." },
+  }}
+/>
+
+```bash
+curl "https://api.vulnix.dev/knowledge?source=manual" \
+  -H "Authorization: Bearer $VULNIX_TOKEN"
+```
+
+```json
+{ "entries": [] }
+```
+
+## Create an entry
+
+`POST /knowledge` · scope `knowledge:write` · role `admin` · returns `201`
+
+<TypeTable
+  type={{
+    entry_type: { type: "string", required: true, description: "One of the five types." },
+    description: { type: "string", required: true, description: "Up to 20,000 characters. Cannot be blank." },
+    domain_ids: { type: "array", description: "Defaults to `[]` — applies to every domain." },
+    repository_ids: { type: "array", description: "Defaults to `[]` — applies to every repository." },
+  }}
+/>
+
+```bash
+curl -X POST https://api.vulnix.dev/knowledge \
+  -H "Authorization: Bearer $VULNIX_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entry_type": "business_logic",
+    "description": "Tenancy is enforced on the X-Org header, not the JWT. A member of org A presented with org B in that header must get 403, never data.",
+    "domain_ids": ["01M2NMSF7GJY6KMMKZJ0EA0N47"]
+  }'
+```
+
+Returns the created entry. An unknown `entry_type`, a blank description, or one over the limit
+returns `422 invalid_knowledge_entry`.
+
+<Callout type="info" title="Write the rule, not the reassurance">
+  "Authentication is important" changes nothing. "A member of org A presented with org B in the
+  `X-Org` header must get 403" is a testable claim the agent can try to break. Entries that
+  state a checkable invariant are the ones that produce findings.
+</Callout>
+
+## Update an entry
+
+`PATCH /knowledge/{entry_id}` · scope `knowledge:write` · role `admin`
+
+Takes the same body as create. Returns the updated entry.
+
+`404 knowledge_entry_not_found` for an unknown id; `409 knowledge_entry_not_editable` for an
+`internal` entry.
+
+## Delete an entry
+
+`DELETE /knowledge/{entry_id}` · scope `knowledge:write` · role `admin` · returns `204`
+
+No response body. Works for both `manual` and `internal` entries — deleting is how you retract
+something the agent concluded and got wrong.

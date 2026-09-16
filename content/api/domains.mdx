@@ -1,0 +1,274 @@
+---
+title: Domains
+description: Register targets, prove you control them, store test-user credentials, and connect a DNS provider for one-click verification.
+---
+
+A **domain** is a host you have registered and proved you control. Nothing is tested until it
+is verified — that proof is what separates a pentest from an attack.
+
+## The domain object
+
+<TypeTable
+  type={{
+    id: { type: "string", description: "ULID." },
+    target_type: { type: "string", description: "`domain`, `subdomain`, `ip_range`, or `api_spec`." },
+    value: { type: "string", description: "The host or range." },
+    verification_status: { type: "string", description: "`pending` or `verified`." },
+    verification_method: { type: "string | null", description: "How it was verified: `dns`, `file`, or `meta`. Null until it is." },
+    verification_failure_reason: { type: "string | null", description: "Why the last attempt failed — what to fix before retrying." },
+    dns_provider: { type: "string | null", description: "Detected nameserver provider, offered as a hint. Only populated while unverified." },
+    verification_txt_host: { type: "string | null", description: "TXT record name to create." },
+    verification_txt_value: { type: "string | null", description: "TXT record value to publish." },
+    verification_file_path: { type: "string | null", description: "Path to serve for file verification." },
+    verification_meta_tag: { type: "string | null", description: "Ready-made `<meta>` tag for HTML verification." },
+    issue_count: { type: "number | null", description: "Open findings on this domain. Null where not computed." },
+    last_tested_at: { type: "string | null", description: "When a run last covered it." },
+  }}
+/>
+
+All four `verification_*` proof fields are precomputed and go null once the domain is verified —
+you never have to build the record strings yourself.
+
+## Register a domain
+
+`POST /domains` · scope `domains:write` · role `admin` · returns `201`
+
+<TypeTable
+  type={{
+    target_type: { type: "string", required: true, description: "`domain`, `subdomain`, or `ip_range`." },
+    value: { type: "string", required: true, description: "The host or range." },
+  }}
+/>
+
+```bash
+curl -X POST https://api.vulnix.dev/domains \
+  -H "Authorization: Bearer $VULNIX_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"target_type": "domain", "value": "acme-demo.com"}'
+```
+
+```json
+{
+  "id": "01M2NMSF7GJY6KMMKZJ0EA0N47",
+  "target_type": "domain",
+  "value": "acme-demo.com",
+  "verification_status": "pending",
+  "verification_method": null,
+  "verification_failure_reason": null,
+  "dns_provider": null,
+  "verification_txt_host": "_vulnix-verify.acme-demo.com",
+  "verification_txt_value": "vulnix-verify=86b64bbb2b229da31a35e9f3f63253b7",
+  "verification_file_path": "/.well-known/vulnix-verify-86b64bbb2b229da31a35e9f3f63253b7.txt",
+  "verification_meta_tag": "<meta name=\"vulnix-verification\" content=\"86b64bbb2b229da31a35e9f3f63253b7\">",
+  "issue_count": null,
+  "last_tested_at": null
+}
+```
+
+## Verify a domain
+
+`POST /domains/{domain_id}/verify` · scope `domains:write` · role `admin`
+
+Publish one of the three proofs, then call this with the matching method.
+
+<TypeTable
+  type={{
+    dns: { description: "Publish `verification_txt_value` as a TXT record at `verification_txt_host`. The most durable — survives redeploys." },
+    file: { description: "Serve the exact token at `verification_file_path` over HTTP." },
+    meta: { description: "Put `verification_meta_tag` in the `<head>` of the root document." },
+  }}
+/>
+
+```bash
+curl -X POST https://api.vulnix.dev/domains/$DOMAIN_ID/verify \
+  -H "Authorization: Bearer $VULNIX_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"method": "dns"}'
+```
+
+Returns the updated domain object. Verification is **not** an error when it fails — you get
+`200` with `verification_status` still `pending` and `verification_failure_reason` explaining
+why. Read the field; do not rely on the status code.
+
+An unrecognized method returns `422 invalid_scope_target`. A target type that cannot be DNS
+verified returns `422 domain_not_dns_verifiable`.
+
+<Callout type="info" title="DNS propagation">
+  A freshly published TXT record can take minutes to become visible. Retry with backoff rather
+  than treating the first `pending` as final.
+</Callout>
+
+## List and read domains
+
+`GET /domains` · scope `domains:read` · role `admin`
+
+```json
+{ "domains": [] }
+```
+
+`GET /domains/{domain_id}` returns one domain object. While it is unverified this endpoint also
+performs a live nameserver lookup to populate `dns_provider`, so it is slightly slower than the
+list.
+
+## Delete a domain
+
+`DELETE /domains/{domain_id}` · scope `domains:write` · role `admin`
+
+```json
+{ "status": "deleted" }
+```
+
+A domain still referenced by a scope returns `409 domain_delete_blocked`. Remove it from the
+scope's targets first.
+
+## Check reachability
+
+`POST /domains/check-reachability` · scope `domains:write` · role `admin`
+
+```json
+{ "value": "acme-demo.com" }
+```
+
+```json
+{ "reachable": true }
+```
+
+A pure probe — it registers nothing. Useful as a preflight before adding a host, so a typo
+fails fast instead of becoming a target that can never verify.
+
+## Findings and runs for a domain
+
+`GET /domains/{domain_id}/issues` · scope `domains:read` · role `admin`
+
+```json
+{ "issues": [] }
+```
+
+Holds [finding objects](/api/findings#the-finding-object).
+
+`GET /domains/{domain_id}/tests` · scope `domains:read` · role `admin`
+
+```json
+{ "tests": [] }
+```
+
+Holds [run objects](/api/runs#the-run-object) — every run that covered this domain.
+
+## Test users
+
+Credentials the agent authenticates with. Without them, everything behind your login screen is
+untested — which is usually where the interesting findings are.
+
+<TypeTable
+  type={{
+    id: { type: "string", description: "ULID. Pass this as `test_user_id` when starting a run." },
+    label: { type: "string", description: "How you recognize it — `admin`, `read-only member`." },
+    username: { type: "string", description: "The login identifier." },
+    login_url: { type: "string | null", description: "Where to sign in, when it is not obvious." },
+    notes: { type: "string | null", description: "Anything the agent should know about this account." },
+    is_reusable: { type: "boolean", description: "`false` means single-run — it will not be listed again." },
+  }}
+/>
+
+<Callout type="warn" title="Secrets are write-only">
+  `password` and `totp_secret` are accepted on create and **never returned** by any endpoint.
+  They are encrypted at rest and only ever decrypted inside the sandbox at run time. There is
+  no way to read a stored credential back through the API — if you lose it, replace it.
+</Callout>
+
+### Add a test user
+
+`POST /domains/{domain_id}/test-users` · scope `domains:write` · role `admin` · returns `201`
+
+<TypeTable
+  type={{
+    label: { type: "string", required: true, description: "Display name." },
+    username: { type: "string", required: true, description: "Login identifier." },
+    password: { type: "string", required: true, description: "Write-only." },
+    totp_secret: { type: "string | null", description: "Base32 TOTP seed, if the account has 2FA. Write-only." },
+    login_url: { type: "string | null", description: "Sign-in URL." },
+    notes: { type: "string | null", description: "Context for the agent." },
+    is_reusable: { type: "boolean", description: "Defaults to `true`. Set `false` for a throwaway account used by one run." },
+  }}
+/>
+
+### List test users
+
+`GET /domains/{domain_id}/test-users` · scope `domains:read` · role `admin`
+
+```json
+{ "test_users": [] }
+```
+
+Only reusable ones appear here. A test user created with `is_reusable: false` is returned once
+by its create call — for the run you are about to start — and never listed again.
+
+### Remove a test user
+
+`DELETE /domains/{domain_id}/test-users/{test_user_id}` · scope `domains:write` · role `admin`
+
+```json
+{ "status": "removed" }
+```
+
+## DNS provider connections
+
+Connect Vercel or Cloudflare once and Vulnix can create the verification record itself.
+
+### List connections
+
+`GET /dns-connections` · scope `domains:read` · role `admin`
+
+```json
+{
+  "connections": [
+    {
+      "provider": "cloudflare",
+      "account_label": "acme-inc",
+      "connected_by": "01K5ADM…",
+      "connected_at": "2026-09-16T17:02:44.118293+00:00"
+    }
+  ]
+}
+```
+
+### Connect
+
+`POST /dns-connections/{provider}/start` · scope `domains:write` · role `admin`
+
+`provider` is `vercel` or `cloudflare`; anything else returns `422 unsupported_dns_provider`.
+
+```json
+{ "return_to": "https://your-app.example.com/settings" }
+```
+
+```json
+{ "authorize_url": "https://dash.cloudflare.com/oauth2/auth?…" }
+```
+
+This is an OAuth flow, so it needs a browser — send the user to `authorize_url`, then post the
+`code` and `state` they come back with to
+`POST /dns-connections/{provider}/callback`. A mismatched `state` returns
+`422 invalid_dns_connect_state`.
+
+<Callout type="info" title="Not automatable end-to-end">
+  A human has to approve the OAuth grant. Connect the provider once through the console; after
+  that, auto-verify below is fully scriptable.
+</Callout>
+
+### Auto-verify
+
+`POST /domains/{domain_id}/dns-connections/{provider}/auto-verify` · scope `domains:write` · role `admin`
+
+Creates the TXT record through the connected provider and immediately re-runs the DNS check —
+one call instead of publish-then-verify. Returns the updated domain object. Failure to write
+the record returns `422 dns_record_creation_failed`; no connection for that provider returns
+`404 dns_provider_connection_not_found`.
+
+### Disconnect
+
+`POST /dns-connections/{provider}/disconnect` · scope `domains:write` · role `admin`
+
+```json
+{ "provider": "cloudflare" }
+```
