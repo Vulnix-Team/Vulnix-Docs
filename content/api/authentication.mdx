@@ -1,0 +1,146 @@
+---
+title: Authentication
+description: Create an API token, keep it scoped, and call the Vulnix API from CI or your own services.
+---
+
+Every request to the Vulnix API carries an API token in an `Authorization` header:
+
+```bash
+curl https://api.vulnix.dev/runs \
+  -H "Authorization: Bearer vnx_your_token_here"
+```
+
+Tokens start with `vnx_`. That prefix is deliberate — secret scanners match on it, so a token
+accidentally committed to a public repository gets flagged rather than quietly living there.
+
+## Creating a token
+
+Go to **API → Tokens** in the console and select **New token**. You choose three things.
+
+### Name
+
+How you will recognise it in six months. `CI pipeline`, `nightly report export` — something that
+tells you what breaks if you revoke it.
+
+### Scopes
+
+What the token may do. Each scope is `resource:action`:
+
+<TypeTable
+  type={{
+    "runs:read": { description: "List pentest runs and read their status, trace, and report." },
+    "runs:write": { description: "Start a pentest, and stop a running one. Spends credits." },
+    "findings:read": { description: "List and read findings." },
+    "findings:write": { description: "Change a finding's status." },
+    "pr_reviews:read": { description: "List and read PR reviews." },
+    "domains:read": { description: "List domains and their verification state." },
+    "domains:write": { description: "Add, verify, and remove domains and test users." },
+    "repositories:read": { description: "List connected repositories." },
+    "repositories:write": { description: "Connect, update, and revoke repositories." },
+    "scopes:read": { description: "Read pentest scope configuration." },
+    "scopes:write": { description: "Create and edit scopes, targets, and documents." },
+    "knowledge:read": { description: "Read organization knowledge entries." },
+    "knowledge:write": { description: "Create, edit, and delete knowledge entries." },
+    "organization:read": { description: "Read organization profile." },
+    "organization:write": { description: "Update organization profile." },
+    "members:read": { description: "List members and pending invites." },
+    "members:write": { description: "Invite and remove members." },
+    "billing:read": { description: "Read plan, credit balance, and billing history." },
+  }}
+/>
+
+Pick the narrowest set the job needs. A token that only reads findings cannot start a run, so a
+leaked CI log cannot bill you.
+
+<Callout type="info" title="A token never exceeds your own role">
+  A token acts as the person who created it, capped by the scopes you selected. If your role is
+  later reduced, every token you created narrows with it immediately. If your role is increased,
+  your existing tokens do **not** gain the new reach — create a new token instead.
+</Callout>
+
+### Expiration
+
+90 days by default. You can choose 30 days, a year, or no expiration. Prefer an expiry: a token
+you have to renew is a token you have to think about, and most leaked credentials are ones
+nobody remembered existed.
+
+## Personal and service tokens
+
+A **personal** token belongs to you. Only you can see it or revoke it — not even an admin.
+
+A **service** token belongs to the organization. Any admin can see and revoke it. Use one for
+shared infrastructure, so your CI does not stop working the day you change teams. Only admins and
+owners can create them.
+
+## Copying the token
+
+The token is shown exactly once, when you create it. We store only a hash, so we cannot show it to
+you again and neither can support. If you lose it, revoke it and create another.
+
+## Revoking
+
+Select **Revoke** on the token's row. It stops working on the next request — there is no
+propagation delay and no cache to wait out.
+
+Removing a member from the organization also revokes every token they created.
+
+## What tokens cannot do
+
+Some things are console-only, by design:
+
+- **Creating or revoking tokens.** A token that can mint tokens turns a temporary leak into a
+  permanent one.
+- **Anything that spends money directly** — changing a plan, buying credits. Starting a pentest
+  spends credits and *is* available with `runs:write`, because that is the automation people
+  actually need; plan changes are not.
+- **The staff portal.** Vulnix staff accounts cannot create API tokens at all.
+
+## Rate limits
+
+<TypeTable
+  type={{
+    "Standard requests": { type: "120 / minute", description: "Per token. Reads and ordinary writes." },
+    "Run-starting requests": { type: "10 / minute", description: "Per token. Starting a pentest, re-testing a fix, opening a fix PR." },
+  }}
+/>
+
+The two budgets are counted separately, so polling a run's status never exhausts your ability to
+start one.
+
+Every response carries the current state:
+
+```http
+X-RateLimit-Limit: 120
+X-RateLimit-Remaining: 117
+X-RateLimit-Reset: 42
+```
+
+`X-RateLimit-Reset` is seconds until the window rolls over. Exceeding a limit returns `429` with a
+`Retry-After` header carrying the same number.
+
+## Errors
+
+Every error uses one envelope:
+
+```json
+{
+  "error": {
+    "code": "api_token_scope_missing",
+    "message": "this API token does not carry the 'runs:write' scope",
+    "details": { "required_scope": "runs:write", "granted_scopes": ["runs:read"] }
+  },
+  "request_id": "01K5Z..."
+}
+```
+
+The ones specific to tokens:
+
+<TypeTable
+  type={{
+    "invalid_api_token": { type: "401", description: "Unknown, revoked, or expired token. Deliberately the same error for all three — mint a new token." },
+    "api_token_scope_missing": { type: "403", description: "Valid token, missing scope. `details.required_scope` names what to tick." },
+    "rate_limited": { type: "429", description: "Slow down. `Retry-After` says how long." },
+  }}
+/>
+
+Quote `request_id` when contacting support — it identifies the exact request in our logs.
