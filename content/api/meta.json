@@ -4,6 +4,7 @@
   "pages": [
     "authentication",
     "conventions",
+    "webhooks",
     "runs",
     "findings",
     "scopes",

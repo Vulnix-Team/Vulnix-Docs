@@ -90,6 +90,8 @@ Some things are console-only, by design:
 
 - **Creating or revoking tokens.** A token that can mint tokens turns a temporary leak into a
   permanent one.
+- **Managing [webhooks](/api/webhooks).** An endpoint subscribed to finding events is a standing
+  feed of your security data to an outside URL.
 - **Anything that spends money directly** — changing a plan, buying credits. Starting a pentest
   spends credits and *is* available with `runs:write`, because that is the automation people
   actually need; plan changes are not.

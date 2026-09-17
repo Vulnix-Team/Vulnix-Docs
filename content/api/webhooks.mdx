@@ -1,0 +1,342 @@
+---
+title: Webhooks
+description: Receive a signed HTTP POST the moment a pentest finishes, a PR review reaches a verdict, or a finding changes — and verify it really came from Vulnix.
+---
+
+Polling `GET /runs/{run_id}` works, but it means asking "is it done yet?" hundreds of times.
+A webhook inverts that: you give Vulnix a URL, and Vulnix calls it when something happens.
+
+## Setting one up
+
+Go to **API → Webhooks** in the console and select **Add endpoint**. You choose the URL and
+which events to send. Only admins and owners can manage webhooks, and they are managed from the
+console only — there is no API for it, and no API token can reach one.
+
+<Callout type="info" title="Why console-only">
+  An endpoint subscribed to finding events is a standing feed of your organization's security
+  data to an outside URL. That is a decision for a person, not something a leaked CI token
+  should be able to set up.
+</Callout>
+
+The signing secret is shown **once**, when you add the endpoint. Store it with your receiver.
+If you lose it, open the endpoint and select **Rotate secret**.
+
+### URL requirements
+
+<TypeTable
+  type={{
+    "https only": { description: "Plain http is refused." },
+    "Publicly reachable": { description: "Private, loopback, link-local, and cloud-metadata addresses are refused — both when you save the URL and again on every delivery, after DNS is resolved." },
+    "No redirects": { description: "A 3xx response counts as a failed delivery. Point the endpoint at the final URL." },
+    "No credentials in the URL": { description: "`https://user:pass@…` is refused. Authenticate the request by its signature instead." },
+  }}
+/>
+
+An organization can have up to **10** endpoints.
+
+## Events
+
+<TypeTable
+  type={{
+    "run.started": { description: "A pentest left the queue and began executing." },
+    "run.completed": { description: "A pentest finished. Carries the finding count and severity breakdown." },
+    "run.failed": { description: "A pentest could not complete. Its credits were refunded." },
+    "run.stopped": { description: "A pentest was stopped before finishing." },
+    "pr_review.completed": { description: "A PR review reached a verdict: `passed`, `failed`, or `inconclusive`." },
+    "finding.status_changed": { description: "A finding moved to a new status." },
+    "finding.risk_accepted": { description: "Someone formally accepted a finding's risk." },
+    "finding.fix_validated": { description: "A re-test of a fix finished, with its outcome." },
+    "domain.verified": { description: "A domain passed ownership verification." },
+  }}
+/>
+
+There is also `ping`, which you cannot subscribe to: it is what **Send test event** delivers.
+
+## The request
+
+Every delivery is a `POST` with a JSON body:
+
+```http
+POST /webhooks/vulnix HTTP/1.1
+Content-Type: application/json
+User-Agent: Vulnix-Webhooks/1.0
+Vulnix-Event-Id: evt_01M2NP4K8QW3ZR7YT2XVB9CDEF
+Vulnix-Event-Type: run.completed
+Vulnix-Delivery-Id: 01M2NP4M3A7B8C9D0E1F2G3H4J
+Vulnix-Signature: t=1758096251,v1=5f2b0c3e…
+```
+
+```json
+{
+  "created_at": "2026-09-17T08:04:11.229104+00:00",
+  "data": {
+    "finding_count": 4,
+    "run_id": "01M2NP4K8QW3ZR7YT2XVB9CDEF",
+    "scope_id": "01M2NMSFVBHZTYR842YNP45TF3",
+    "severity_breakdown": { "critical": 1, "high": 2, "info": 0, "low": 0, "medium": 1 },
+    "status": "finished"
+  },
+  "id": "evt_01M2NP4K8QW3ZR7YT2XVB9CDEF",
+  "org_id": "01K5ADMINORG000000000000A",
+  "type": "run.completed"
+}
+```
+
+<TypeTable
+  type={{
+    id: { type: "string", description: "The event id. Identical across retries and redeliveries — deduplicate on this." },
+    type: { type: "string", description: "The event type." },
+    created_at: { type: "string", description: "When the event happened, ISO 8601." },
+    org_id: { type: "string", description: "Your organization." },
+    data: { type: "object", description: "Event-specific fields, below." },
+  }}
+/>
+
+### Payloads carry identifiers, not detail
+
+Webhook bodies contain ids, statuses, and counts — never a finding's title, description, proof of
+concept, or remediation. Fetch those with an [API token](/api/authentication) when the event
+arrives. If your receiver's URL or logs ever leak, they leak that a run finished, not how your
+application is vulnerable.
+
+### `data` by event
+
+<Accordions>
+<Accordion title="run.started · run.failed · run.stopped">
+
+```json
+{ "run_id": "01M2…", "scope_id": "01M2…", "status": "running", "previous_status": "queued" }
+```
+
+</Accordion>
+<Accordion title="run.completed">
+
+```json
+{
+  "run_id": "01M2…",
+  "scope_id": "01M2…",
+  "status": "finished",
+  "finding_count": 4,
+  "severity_breakdown": { "critical": 1, "high": 2, "medium": 1, "low": 0, "info": 0 }
+}
+```
+
+Then call [`GET /runs/{run_id}/findings`](/api/runs#findings-from-a-run) for the findings themselves.
+
+</Accordion>
+<Accordion title="pr_review.completed">
+
+```json
+{
+  "pr_review_id": "01M2…",
+  "repository_id": "01M2…",
+  "pull_request_number": 142,
+  "head_sha": "9f1c2e…",
+  "verdict": "failed",
+  "finding_count": 2,
+  "severity_breakdown": { "critical": 0, "high": 1, "medium": 1, "low": 0, "info": 0 }
+}
+```
+
+For an `inconclusive` verdict, `finding_count` and `severity_breakdown` are `null` — the scan did
+not finish, so there is no count to report. `null` is deliberate; `0` would claim a clean result.
+
+</Accordion>
+<Accordion title="finding.status_changed · finding.risk_accepted">
+
+```json
+{
+  "finding_id": "01M2…",
+  "run_id": "01M2…",
+  "pr_review_id": null,
+  "domain_id": "01M2…",
+  "severity": "high",
+  "status": "fixed",
+  "previous_status": "in_progress"
+}
+```
+
+`finding.risk_accepted` carries `accepted_by_user_id` instead of `previous_status`. Exactly one of
+`run_id` and `pr_review_id` is set.
+
+</Accordion>
+<Accordion title="finding.fix_validated">
+
+```json
+{
+  "finding_id": "01M2…",
+  "attempt_id": "01M2…",
+  "outcome": "confirmed_fixed",
+  "finding_status": "fixed",
+  "severity": "high"
+}
+```
+
+`outcome` is `confirmed_fixed`, `still_vulnerable`, or `inconclusive`. Only `confirmed_fixed` moves
+the finding to `fixed`.
+
+</Accordion>
+<Accordion title="domain.verified">
+
+```json
+{ "domain_id": "01M2…", "value": "acme.example.com", "target_type": "domain", "verification_method": "dns" }
+```
+
+</Accordion>
+</Accordions>
+
+## Verifying the signature
+
+**Verify every request.** Your endpoint is a public URL; without verification, anyone who finds it
+can post fake events to it.
+
+`Vulnix-Signature` has the form `t=<unix seconds>,v1=<hex>`. The `v1` value is an HMAC-SHA256,
+keyed with your signing secret, of the timestamp, a literal `.`, and the **raw request body**.
+
+<Steps>
+<Step>
+Split the header on `,` and read `t` and `v1`.
+</Step>
+<Step>
+Reject the request if `t` is more than **5 minutes** from your current time. The timestamp is
+inside the signature, so this is what stops a captured request being replayed later.
+</Step>
+<Step>
+Compute `HMAC-SHA256(secret, "{t}.{raw body}")` as lowercase hex.
+</Step>
+<Step>
+Compare it to `v1` with a **constant-time** comparison.
+</Step>
+</Steps>
+
+<Callout type="warn" title="Use the raw body, byte for byte">
+  Verify against the bytes you received, before any JSON parsing. Parsing and re-serializing
+  changes whitespace and key order, and the signature will never match. This is the single most
+  common cause of "the signature is always wrong".
+</Callout>
+
+<Tabs items={["Node.js", "Python"]}>
+<Tab value="Node.js">
+
+```js
+import crypto from "node:crypto";
+import express from "express";
+
+const app = express();
+const SECRET = process.env.VULNIX_WEBHOOK_SECRET;
+
+function verify(rawBody, header) {
+  const parts = Object.fromEntries(header.split(",").map((p) => p.split("=", 2)));
+  const timestamp = Number(parts.t);
+  if (!timestamp || Math.abs(Date.now() / 1000 - timestamp) > 300) return false;
+
+  const expected = crypto
+    .createHmac("sha256", SECRET)
+    .update(`${timestamp}.${rawBody}`)
+    .digest("hex");
+  const received = Buffer.from(parts.v1 ?? "", "utf8");
+  const computed = Buffer.from(expected, "utf8");
+  return received.length === computed.length && crypto.timingSafeEqual(received, computed);
+}
+
+// express.raw, not express.json: the signature covers the exact bytes.
+app.post("/webhooks/vulnix", express.raw({ type: "application/json" }), (req, res) => {
+  const raw = req.body.toString("utf8");
+  if (!verify(raw, req.get("Vulnix-Signature") ?? "")) return res.sendStatus(400);
+
+  const event = JSON.parse(raw);
+  res.sendStatus(200); // acknowledge first, then do the work
+  handle(event);
+});
+```
+
+</Tab>
+<Tab value="Python">
+
+```python
+import hashlib
+import hmac
+import json
+import os
+import time
+
+from flask import Flask, abort, request
+
+app = Flask(__name__)
+SECRET = os.environ["VULNIX_WEBHOOK_SECRET"].encode()
+
+
+def verify(raw_body: bytes, header: str) -> bool:
+    parts = dict(p.split("=", 1) for p in header.split(",") if "=" in p)
+    try:
+        timestamp = int(parts["t"])
+    except (KeyError, ValueError):
+        return False
+    if abs(time.time() - timestamp) > 300:
+        return False
+    expected = hmac.new(SECRET, f"{timestamp}.".encode() + raw_body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, parts.get("v1", ""))
+
+
+@app.post("/webhooks/vulnix")
+def vulnix_webhook():
+    raw = request.get_data()  # raw bytes, before any parsing
+    if not verify(raw, request.headers.get("Vulnix-Signature", "")):
+        abort(400)
+    event = json.loads(raw)
+    enqueue(event)  # acknowledge fast; process asynchronously
+    return "", 200
+```
+
+</Tab>
+</Tabs>
+
+## Responding
+
+Return any **2xx** within **10 seconds**. Anything else — a non-2xx status, a redirect, a timeout,
+a TLS or connection error — counts as a failure and is retried.
+
+Acknowledge first and do the work afterwards. A receiver that calls the Vulnix API, writes to a
+database, and posts to Slack before responding will eventually cross 10 seconds, and then receive
+the same event again while still processing the first one.
+
+## Retries
+
+A failed delivery is retried with growing gaps — after 1 minute, 5 minutes, 30 minutes, 2 hours,
+5 hours, 10 hours, and 10 hours — **8 attempts over a little more than a day**. An overnight outage on your
+side loses nothing.
+
+A **Send test event** ping is never retried: it is a one-off check of your receiver.
+
+### Duplicates and ordering
+
+Delivery is **at least once**. The same event can arrive more than once — after a retry that your
+receiver actually processed but answered too slowly, for example. Deduplicate on the body's `id`
+(also sent as `Vulnix-Event-Id`), which is stable across retries and redeliveries.
+
+Events are not guaranteed to arrive in order. A retried `run.started` can land after
+`run.completed`. When order matters, compare `created_at`, or fetch the current state from the API
+rather than trusting the sequence of events.
+
+### Automatic disabling
+
+If every delivery to an endpoint fails continuously for **3 days**, the endpoint is disabled, its
+pending retries are dropped, and a notification appears in your organization's notification feed. Fix the receiver,
+then turn **Enabled** back on in the endpoint's settings — that also resets the failure streak.
+
+## Delivery log
+
+Open an endpoint in the console to see its last 50 deliveries: status, HTTP response code,
+response time, the exact payload sent, and the first 1 KB of your receiver's response or the
+connection error. Select **Redeliver** to send any delivery again — it keeps the same event `id`
+and body, so your deduplication treats it as the same event.
+
+Test events and redeliveries share a limit of **20 per 10 minutes** per organization.
+
+Delivery history is kept for **30 days**.
+
+## Rotating the secret
+
+**Rotate secret** takes effect immediately: the very next delivery is signed with the new secret.
+There is no overlap window, so deploy the new secret to your receiver right after rotating —
+deliveries that fail in between are retried, not lost.
