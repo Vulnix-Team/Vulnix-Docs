@@ -1,0 +1,25 @@
+---
+title: Changelog
+description: What's been added to the API. There is no version segment in the path — see Conventions for why — so this is the record instead.
+---
+
+The API has no `v1`/`v2` in its path (see [Conventions](/api/conventions#base-url)): existing
+fields and endpoints don't change shape under you, so there is nothing to migrate between. This
+page is the append-only record of what got added, for anyone who wants to know what's new
+without diffing the reference by hand.
+
+<Callout type="info" title="Nothing here is ever a breaking change">
+  A breaking change to an existing field or endpoint would be a bug, not an entry on this page.
+  Everything below is additive: a new endpoint, a new scope, a new event.
+</Callout>
+
+## 2026-09
+
+- **Webhooks.** Subscribe an endpoint in the console to get a signed `POST` the moment a run
+  finishes, a PR review reaches a verdict, or a finding changes — instead of polling. See
+  [Webhooks](/api/webhooks).
+- **API tokens.** Personal and service tokens, scoped per resource (`runs:read`,
+  `findings:write`, and so on) and capped by the creator's role. See
+  [Authentication](/api/authentication).
+- **Public OpenAPI spec.** The full token-reachable surface is now published as
+  [`openapi.json`](/openapi.json) for Postman/Insomnia import or client generation.

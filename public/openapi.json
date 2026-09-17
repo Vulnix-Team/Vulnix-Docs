@@ -1,0 +1,4605 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Vulnix API",
+    "description": "The public Vulnix API. Every operation here is reachable with an API token created in Console -> API -> Tokens; see /api/authentication in the docs. There is no version segment in the path - see /api/conventions for why.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/org": {
+      "patch": {
+        "summary": "Update Org Profile",
+        "operationId": "update_org_profile_org_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrgProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "type": "object",
+                  "title": "Response Update Org Profile Org Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/org/onboarding-complete": {
+      "post": {
+        "summary": "Complete Org Onboarding",
+        "description": "Marks the first-run WelcomeTour done for the caller's org. Any org\nmember can complete it (not just an admin) - unlike `PATCH /org`'s\nprofile fields, this doesn't change anything another admin would need\nto gate, and requiring an admin role here would strand a non-admin\ninvited into a brand-new org with the modal reopening on every visit.",
+        "operationId": "complete_org_onboarding_org_onboarding_complete_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "type": "object",
+                  "title": "Response Complete Org Onboarding Org Onboarding Complete Post"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/org/logo": {
+      "get": {
+        "summary": "Get Org Logo",
+        "description": "Fetched server-side by the Next.js proxy route the same way\n`/me/avatar` is - the bearer token never reaches the browser directly.",
+        "operationId": "get_org_logo_org_logo_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization"
+        ]
+      },
+      "post": {
+        "summary": "Upload Org Logo",
+        "operationId": "upload_org_logo_org_logo_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_org_logo_org_logo_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "type": "object",
+                  "title": "Response Upload Org Logo Org Logo Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/org/pr-review-defaults": {
+      "patch": {
+        "summary": "Update Org Pr Review Defaults",
+        "operationId": "update_org_pr_review_defaults_org_pr_review_defaults_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrgPrReviewDefaultsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Update Org Pr Review Defaults Org Pr Review Defaults Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/invites": {
+      "post": {
+        "summary": "Create Invite",
+        "operationId": "create_invite_invites_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Create Invite Invites Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Team"
+        ]
+      }
+    },
+    "/team": {
+      "get": {
+        "summary": "List Team",
+        "operationId": "list_team_team_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Team Team Get"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Team"
+        ]
+      }
+    },
+    "/team/members/{user_id}": {
+      "patch": {
+        "summary": "Change Member Role",
+        "operationId": "change_member_role_team_members__user_id__patch",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeRoleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Change Member Role Team Members  User Id  Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Team"
+        ]
+      },
+      "delete": {
+        "summary": "Revoke Member",
+        "operationId": "revoke_member_team_members__user_id__delete",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Revoke Member Team Members  User Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Team"
+        ]
+      }
+    },
+    "/team/invites/{invite_id}": {
+      "delete": {
+        "summary": "Revoke Invite",
+        "operationId": "revoke_invite_team_invites__invite_id__delete",
+        "parameters": [
+          {
+            "name": "invite_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Invite Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Revoke Invite Team Invites  Invite Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Team"
+        ]
+      }
+    },
+    "/scopes": {
+      "get": {
+        "summary": "List Scopes",
+        "operationId": "list_scopes_scopes_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Scopes Scopes Get"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      },
+      "post": {
+        "summary": "Create Scope",
+        "operationId": "create_scope_scopes_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateScopeRequest",
+                "default": {
+                  "scan_type": "blackbox"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Create Scope Scopes Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      }
+    },
+    "/scopes/{scope_id}": {
+      "get": {
+        "summary": "Get Scope",
+        "operationId": "get_scope_scopes__scope_id__get",
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Scope Scopes  Scope Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      }
+    },
+    "/scopes/{scope_id}/constraints": {
+      "patch": {
+        "summary": "Update Scope Constraints",
+        "operationId": "update_scope_constraints_scopes__scope_id__constraints_patch",
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateScopeConstraintsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Scope Constraints Scopes  Scope Id  Constraints Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      }
+    },
+    "/scopes/{scope_id}/scope-enabled": {
+      "patch": {
+        "summary": "Update Scope Enabled",
+        "operationId": "update_scope_enabled_scopes__scope_id__scope_enabled_patch",
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateScopeEnabledRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Scope Enabled Scopes  Scope Id  Scope Enabled Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      }
+    },
+    "/scopes/{scope_id}/surfaces": {
+      "post": {
+        "summary": "Add Scope Surface",
+        "operationId": "add_scope_surface_scopes__scope_id__surfaces_post",
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddScopeSurfaceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Add Scope Surface Scopes  Scope Id  Surfaces Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      }
+    },
+    "/scopes/{scope_id}/surfaces/{surface_id}": {
+      "patch": {
+        "summary": "Update Scope Surface",
+        "operationId": "update_scope_surface_scopes__scope_id__surfaces__surface_id__patch",
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          },
+          {
+            "name": "surface_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Surface Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateScopeSurfaceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Scope Surface Scopes  Scope Id  Surfaces  Surface Id  Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      }
+    },
+    "/scopes/{scope_id}/surfaces/exclude-all": {
+      "post": {
+        "summary": "Exclude All Scope Surfaces",
+        "operationId": "exclude_all_scope_surfaces_scopes__scope_id__surfaces_exclude_all_post",
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExcludeAllScopeSurfacesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Exclude All Scope Surfaces Scopes  Scope Id  Surfaces Exclude All Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      }
+    },
+    "/scopes/{scope_id}/notify-on-completion": {
+      "patch": {
+        "summary": "Update Notify Email On Completion",
+        "operationId": "update_notify_email_on_completion_scopes__scope_id__notify_on_completion_patch",
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNotifyEmailOnCompletionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Notify Email On Completion Scopes  Scope Id  Notify On Completion Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      }
+    },
+    "/scopes/{scope_id}/targets": {
+      "post": {
+        "summary": "Add Scope Target",
+        "operationId": "add_scope_target_scopes__scope_id__targets_post",
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddScopeTargetRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Add Scope Target Scopes  Scope Id  Targets Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      }
+    },
+    "/scopes/{scope_id}/targets/api-spec": {
+      "post": {
+        "summary": "Add Scope Target Api Spec",
+        "operationId": "add_scope_target_api_spec_scopes__scope_id__targets_api_spec_post",
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_add_scope_target_api_spec_scopes__scope_id__targets_api_spec_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Add Scope Target Api Spec Scopes  Scope Id  Targets Api Spec Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      }
+    },
+    "/scopes/{scope_id}/context": {
+      "patch": {
+        "summary": "Update Scope Context",
+        "operationId": "update_scope_context_scopes__scope_id__context_patch",
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateScopeContextRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Scope Context Scopes  Scope Id  Context Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      }
+    },
+    "/scopes/{scope_id}/repository": {
+      "post": {
+        "summary": "Set Scope Repository",
+        "description": "Whitebox pentest type's Source Code step - links the one connected\nrepository this Scope's Run will check out into the sandbox.",
+        "operationId": "set_scope_repository_scopes__scope_id__repository_post",
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetScopeRepositoryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Set Scope Repository Scopes  Scope Id  Repository Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      }
+    },
+    "/scopes/{scope_id}/documents": {
+      "post": {
+        "summary": "Upload Scope Document",
+        "description": "Story 2.7: reuses Story 2.1's `add_scope_target_api_spec` read/decode\nmechanism verbatim (no per-file-type parsing) but stores against\n`scope_documents`, not `scope_targets`/`domains` - a reference document\nis not a pentest target subject to verification/dedup.",
+        "operationId": "upload_scope_document_scopes__scope_id__documents_post",
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_scope_document_scopes__scope_id__documents_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Upload Scope Document Scopes  Scope Id  Documents Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      }
+    },
+    "/scopes/{scope_id}/documents/{document_id}": {
+      "delete": {
+        "summary": "Remove Scope Document",
+        "operationId": "remove_scope_document_scopes__scope_id__documents__document_id__delete",
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Remove Scope Document Scopes  Scope Id  Documents  Document Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      }
+    },
+    "/scopes/{scope_id}/targets/{target_id}": {
+      "delete": {
+        "summary": "Remove Scope Target",
+        "operationId": "remove_scope_target_scopes__scope_id__targets__target_id__delete",
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          },
+          {
+            "name": "target_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Target Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Remove Scope Target Scopes  Scope Id  Targets  Target Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      }
+    },
+    "/scopes/{scope_id}/targets/{target_id}/verify": {
+      "post": {
+        "summary": "Verify Scope Target",
+        "operationId": "verify_scope_target_scopes__scope_id__targets__target_id__verify_post",
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          },
+          {
+            "name": "target_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Target Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Verify Scope Target Scopes  Scope Id  Targets  Target Id  Verify Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      }
+    },
+    "/scopes/{scope_id}/schedule": {
+      "patch": {
+        "summary": "Update Scope Schedule",
+        "description": "\"Schedule This Pentest\": recurring launch config, paid plans only.\nSame gating precedent as `create_scope`'s Whitebox check above - checked\nonly when enabling (never when disabling, so a downgraded org can still\nturn its own schedule off).",
+        "operationId": "update_scope_schedule_scopes__scope_id__schedule_patch",
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateScopeScheduleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Scope Schedule Scopes  Scope Id  Schedule Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scopes"
+        ]
+      }
+    },
+    "/domains/check-reachability": {
+      "post": {
+        "summary": "Check Domain Reachability",
+        "operationId": "check_domain_reachability_domains_check_reachability_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckReachabilityRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Check Domain Reachability Domains Check Reachability Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Domains"
+        ]
+      }
+    },
+    "/domains": {
+      "get": {
+        "summary": "List Domains",
+        "operationId": "list_domains_domains_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Domains Domains Get"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Domains"
+        ]
+      },
+      "post": {
+        "summary": "Create Domain",
+        "operationId": "create_domain_domains_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDomainRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Create Domain Domains Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Domains"
+        ]
+      }
+    },
+    "/domains/{domain_id}": {
+      "get": {
+        "summary": "Get Domain",
+        "operationId": "get_domain_domains__domain_id__get",
+        "parameters": [
+          {
+            "name": "domain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Domain Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Domain Domains  Domain Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Domains"
+        ]
+      },
+      "delete": {
+        "summary": "Delete Domain",
+        "operationId": "delete_domain_domains__domain_id__delete",
+        "parameters": [
+          {
+            "name": "domain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Domain Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Delete Domain Domains  Domain Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Domains"
+        ]
+      }
+    },
+    "/domains/{domain_id}/verify": {
+      "post": {
+        "summary": "Verify Domain",
+        "operationId": "verify_domain_domains__domain_id__verify_post",
+        "parameters": [
+          {
+            "name": "domain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Domain Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyDomainRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Verify Domain Domains  Domain Id  Verify Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Domains"
+        ]
+      }
+    },
+    "/domains/{domain_id}/test-users": {
+      "get": {
+        "summary": "List Domain Test Users",
+        "operationId": "list_domain_test_users_domains__domain_id__test_users_get",
+        "parameters": [
+          {
+            "name": "domain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Domain Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Domain Test Users Domains  Domain Id  Test Users Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Domains"
+        ]
+      },
+      "post": {
+        "summary": "Add Domain Test User",
+        "operationId": "add_domain_test_user_domains__domain_id__test_users_post",
+        "parameters": [
+          {
+            "name": "domain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Domain Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddDomainTestUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Add Domain Test User Domains  Domain Id  Test Users Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Domains"
+        ]
+      }
+    },
+    "/domains/{domain_id}/test-users/{test_user_id}": {
+      "delete": {
+        "summary": "Remove Domain Test User",
+        "operationId": "remove_domain_test_user_domains__domain_id__test_users__test_user_id__delete",
+        "parameters": [
+          {
+            "name": "domain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Domain Id"
+            }
+          },
+          {
+            "name": "test_user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Test User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Remove Domain Test User Domains  Domain Id  Test Users  Test User Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Domains"
+        ]
+      }
+    },
+    "/domains/{domain_id}/issues": {
+      "get": {
+        "summary": "List Domain Issues",
+        "operationId": "list_domain_issues_domains__domain_id__issues_get",
+        "parameters": [
+          {
+            "name": "domain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Domain Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Domain Issues Domains  Domain Id  Issues Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Domains"
+        ]
+      }
+    },
+    "/domains/{domain_id}/tests": {
+      "get": {
+        "summary": "List Domain Tests",
+        "operationId": "list_domain_tests_domains__domain_id__tests_get",
+        "parameters": [
+          {
+            "name": "domain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Domain Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Domain Tests Domains  Domain Id  Tests Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Domains"
+        ]
+      }
+    },
+    "/dns-connections": {
+      "get": {
+        "summary": "List Dns Connections",
+        "operationId": "list_dns_connections_dns_connections_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Dns Connections Dns Connections Get"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Domains"
+        ]
+      }
+    },
+    "/dns-connections/{provider}/start": {
+      "post": {
+        "summary": "Start Dns Connect",
+        "operationId": "start_dns_connect_dns_connections__provider__start_post",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Provider"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DnsConnectStartRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Start Dns Connect Dns Connections  Provider  Start Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Domains"
+        ]
+      }
+    },
+    "/dns-connections/{provider}/callback": {
+      "post": {
+        "summary": "Callback Dns Connect",
+        "operationId": "callback_dns_connect_dns_connections__provider__callback_post",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Provider"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DnsConnectCallbackRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Callback Dns Connect Dns Connections  Provider  Callback Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Domains"
+        ]
+      }
+    },
+    "/dns-connections/{provider}/disconnect": {
+      "post": {
+        "summary": "Disconnect Dns Connect",
+        "operationId": "disconnect_dns_connect_dns_connections__provider__disconnect_post",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Provider"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Disconnect Dns Connect Dns Connections  Provider  Disconnect Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Domains"
+        ]
+      }
+    },
+    "/domains/{domain_id}/dns-connections/{provider}/auto-verify": {
+      "post": {
+        "summary": "Auto Verify Domain Via Dns Connection",
+        "description": "\"Add record automatically\" (Domain Detail's DNS tab) - uses the\norg's already-connected Vercel/Cloudflare account to create the\nverification TXT record via the provider's own API, then immediately\nre-runs the same live DNS check `POST /domains/{domain_id}/verify`\nuses, so a single click both creates the record and confirms it\n(rather than the caller needing a second manual \"now click Verify\").",
+        "operationId": "auto_verify_domain_via_dns_connection_domains__domain_id__dns_connections__provider__auto_verify_post",
+        "parameters": [
+          {
+            "name": "domain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Domain Id"
+            }
+          },
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Provider"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Auto Verify Domain Via Dns Connection Domains  Domain Id  Dns Connections  Provider  Auto Verify Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Domains"
+        ]
+      }
+    },
+    "/repositories/connect/start": {
+      "post": {
+        "summary": "Start Connect Repository",
+        "operationId": "start_connect_repository_repositories_connect_start_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Start Connect Repository Repositories Connect Start Post"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Repositories"
+        ]
+      }
+    },
+    "/repositories/connect": {
+      "post": {
+        "summary": "Connect Repository",
+        "operationId": "connect_repository_repositories_connect_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectRepositoryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Connect Repository Repositories Connect Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Repositories"
+        ]
+      }
+    },
+    "/repositories/available": {
+      "get": {
+        "summary": "List Available Repositories",
+        "operationId": "list_available_repositories_repositories_available_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Available Repositories Repositories Available Get"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Repositories"
+        ]
+      }
+    },
+    "/repositories/installations": {
+      "get": {
+        "summary": "List Repository Installations",
+        "operationId": "list_repository_installations_repositories_installations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Repository Installations Repositories Installations Get"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Repositories"
+        ]
+      }
+    },
+    "/repositories/installations/{installation_id}/disconnect": {
+      "post": {
+        "summary": "Disconnect Repository Installation",
+        "operationId": "disconnect_repository_installation_repositories_installations__installation_id__disconnect_post",
+        "parameters": [
+          {
+            "name": "installation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Installation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Disconnect Repository Installation Repositories Installations  Installation Id  Disconnect Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Repositories"
+        ]
+      }
+    },
+    "/repositories": {
+      "get": {
+        "summary": "List Repositories",
+        "operationId": "list_repositories_repositories_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Repositories Repositories Get"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Repositories"
+        ]
+      },
+      "post": {
+        "summary": "Add Repositories",
+        "operationId": "add_repositories_repositories_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddRepositoriesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Add Repositories Repositories Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Repositories"
+        ]
+      }
+    },
+    "/repositories/{repository_id}": {
+      "get": {
+        "summary": "Get Repository",
+        "operationId": "get_repository_repositories__repository_id__get",
+        "parameters": [
+          {
+            "name": "repository_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Repository Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Repository Repositories  Repository Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Repositories"
+        ]
+      },
+      "patch": {
+        "summary": "Update Repository Policies",
+        "operationId": "update_repository_policies_repositories__repository_id__patch",
+        "parameters": [
+          {
+            "name": "repository_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Repository Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRepositoryPoliciesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Repository Policies Repositories  Repository Id  Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Repositories"
+        ]
+      }
+    },
+    "/repositories/{repository_id}/revoke": {
+      "post": {
+        "summary": "Revoke Repository",
+        "operationId": "revoke_repository_repositories__repository_id__revoke_post",
+        "parameters": [
+          {
+            "name": "repository_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Repository Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Revoke Repository Repositories  Repository Id  Revoke Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Repositories"
+        ]
+      }
+    },
+    "/billing/plans": {
+      "get": {
+        "summary": "List Billing Plans",
+        "operationId": "list_billing_plans_billing_plans_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Billing Plans Billing Plans Get"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/billing/status": {
+      "get": {
+        "summary": "Get Billing Status",
+        "operationId": "get_billing_status_billing_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Billing Status Billing Status Get"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/billing/history": {
+      "get": {
+        "summary": "Get Billing History",
+        "operationId": "get_billing_history_billing_history_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Billing History Billing History Get"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/scopes/{scope_id}/runs": {
+      "post": {
+        "summary": "Start Pentest Run",
+        "operationId": "start_pentest_run_scopes__scope_id__runs_post",
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartPentestRunRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Start Pentest Run Scopes  Scope Id  Runs Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/runs": {
+      "get": {
+        "summary": "List Runs",
+        "description": "Story 3.6: every Run belonging to the caller's org, most-recent-first,\neach with a Scope target-value summary for display.",
+        "operationId": "list_runs_runs_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Runs Runs Get"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/runs/compare": {
+      "get": {
+        "summary": "Compare Runs",
+        "description": "Story 4.4 AC #3: side-by-side Findings comparison between two Runs -\nregistered before `/runs/{run_id}` so this literal path isn't shadowed\nby the parameterized route. Code review: role gate matches `GET /runs`/\n`GET /runs/{run_id}` (both `admin`-gated, Story 3.6) rather than the\nFindings routes' broader `analyst` tier - the Reports UI itself fetches\n`GET /runs` to build its list, so gating this any looser would grant an\nanalyst an API they could never actually reach through the UI.",
+        "operationId": "compare_runs_runs_compare_get",
+        "parameters": [
+          {
+            "name": "run_a",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run A"
+            }
+          },
+          {
+            "name": "run_b",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run B"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Compare Runs Runs Compare Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/runs/{run_id}": {
+      "get": {
+        "summary": "Get Run",
+        "operationId": "get_run_runs__run_id__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Run Runs  Run Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/runs/{run_id}/agent-trace": {
+      "get": {
+        "summary": "Get Run Agent Trace",
+        "description": "Story 4.7 AC #2/#5/#6: role gate matches `/findings` (`analyst`, not\n`/runs/{run_id}`'s `admin`) - Agent Trace is a read-only investigative\nview at the same access level as Findings. `RunService.get_run` 404s\nfor a missing/foreign-org run_id (AD-1) before the trace is even\nqueried, same tenant-isolation-via-explicit-lookup pattern as every\nother `/runs/{run_id}/*` route. An empty `nodes` list (no ingestible\ntrace) is a valid 200, not a 404 - AC #5's honest empty state.",
+        "operationId": "get_run_agent_trace_runs__run_id__agent_trace_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Run Agent Trace Runs  Run Id  Agent Trace Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/runs/{run_id}/phases": {
+      "get": {
+        "summary": "Get Run Phases",
+        "description": "Follow-up (2026-08-20): the Phase Timeline previously only ever\nrendered while a Run was still live, streamed straight off\n`run-events:{run_id}` (Story 3.4) - a terminal Run's detail page never\nread that stream at all, so a failed/stopped/finished Run's task\nhistory vanished the moment the SSE connection closed, even though the\nsame real events were already sitting in Redis. Same\ntenant-isolation-via-explicit-lookup pattern as `/agent-trace` above:\n`RunService.get_run` 404s for a missing/foreign-org run_id before the\nstream is read. Reduces every `phase_update` entry down to one final\nstate per task (last status wins), in first-seen order - the same\nreduction `applyRunEvent` does client-side while a Run is live, just\nreplayed here from the whole stream instead of folded incrementally.\nAn empty `phases` list (stream expired past its 7-day TTL, or no\ntodos were ever created) is a valid 200, not a 404 - same honest-empty\nprecedent as Agent Trace.",
+        "operationId": "get_run_phases_runs__run_id__phases_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Run Phases Runs  Run Id  Phases Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/runs/{run_id}/findings": {
+      "get": {
+        "summary": "Get Run Findings",
+        "description": "Story 4.8 AC #2/#7: every Finding belonging to this Run - gated at\n`admin` to match this page's own `GET /runs/{run_id}` (not `analyst`\nlike the standalone `/findings`/`/runs/{run_id}/agent-trace` routes -\nthis route is only ever reached from the Run detail page, which\nitself requires admin; see Story 4.8 Dev Notes on the pre-existing\nrole-gate inconsistency this story doesn't resolve). `RunService.get_run`\n404s for a missing/foreign-org run_id first (AD-1), same\ntenant-isolation-via-explicit-lookup pattern as `get_run_agent_trace`.\nAn empty result is a valid 200, not a 404.",
+        "operationId": "get_run_findings_runs__run_id__findings_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Run Findings Runs  Run Id  Findings Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/runs/{run_id}/report": {
+      "get": {
+        "summary": "Get Run Report",
+        "description": "Story 4.4 AC #1/#2: one canonical Run+Findings projection (AD-10)\nrenders into PDF/DOCX/JSON; SARIF is Vulnix's own emitted file served\nbyte-for-byte from the evidence store (see the story's Scope Note).\nRole gate matches `GET /runs/{run_id}` (`admin`) - see `compare_runs`'s\ncomment for why this isn't the Findings routes' looser `analyst` tier.",
+        "operationId": "get_run_report_runs__run_id__report_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Format"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/runs/{run_id}/stop": {
+      "post": {
+        "summary": "Stop Run",
+        "description": "Story 3.5 AC #1/#3: client admin stopping their own org's Run - same\naccess level as GET /runs/{run_id}. RunNotStoppable (409) surfaces\nthrough the shared DomainError handler for a Run already in a terminal\nstatus.",
+        "operationId": "stop_run_runs__run_id__stop_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Stop Run Runs  Run Id  Stop Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/runs/{run_id}/events": {
+      "get": {
+        "summary": "Stream Run Events",
+        "description": "Client-facing live event stream (Story 3.4 AC #1/#2). Same access\nlevel as `GET /runs/{run_id}` - no new RBAC. Existence/org-scoping is\nchecked once, synchronously, before entering the streaming loop (Task\n3, Subtask 3.3) - `RunService.get_run` raises `RunNotFound` (404) for a\nmissing or cross-org `run_id`, handled by the shared `DomainError`\nexception handler exactly like every other route.",
+        "operationId": "stream_run_events_runs__run_id__events_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/dashboard/overview": {
+      "get": {
+        "summary": "Dashboard Overview",
+        "description": "Story 4.5: replaces the flat, non-range-aware KPI computation with\n`DashboardService`'s full `?range=7d|30d|90d` response (matching\napp.vulnix.dev's own `GET /api/dashboard/overview` field shapes, see\ndocs/Vulnix_Hosted_Product_Analysis.md #3.3) - Security Score (+ delta),\nOpen Issues, Issues Found, Fix Rate, Pentests, the\nseverity-breakdown donut, and the issues-over-time/open-vs-fixed/MTTR\ntime series. `require_auth` (not `require_role`) is preserved - every\norg member, any role, can view their own org's dashboard.",
+        "operationId": "dashboard_overview_dashboard_overview_get",
+        "parameters": [
+          {
+            "name": "range",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "30d",
+              "title": "Range"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Dashboard Overview Dashboard Overview Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Findings"
+        ]
+      }
+    },
+    "/findings": {
+      "get": {
+        "summary": "List Findings",
+        "description": "Story 4.3 AC #1/#6: every Finding belonging to the caller's org,\noptionally narrowed by `status`/`severity`, plus a severity breakdown\nof exactly that returned list (code review 2026-07-21: previously\nhard-coded to an all-time \"open\" count, which silently stopped\nmatching the list once a filter was applied and dropped the \"info\"\nseverity - now computed from `findings` itself, so it always\nsummarizes \"the list above it\" per AC #1).\n\nAlso carries each finding's real `repository_id` (see\n`_resolve_repository_ids`) alongside the `domain_id` `_finding_dict`\nalready exposes - together these back the Issues screen's\nRepositories/Domains filters, which used to be permanently-disabled\nplaceholders from before either asset type existed.",
+        "operationId": "list_findings_findings_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Severity"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Findings Findings Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Findings"
+        ]
+      }
+    },
+    "/findings/{finding_id}": {
+      "get": {
+        "summary": "Get Finding",
+        "description": "Story 4.3 AC #2/#6: a single Finding's full detail - 404s for a\nmissing or cross-org finding_id (AD-1), same shape either way (see\n`FindingNotFound`).\n\nStory 5.3: also returns `validate_fix_attempts` (newest-first) so the\nclient sees the latest Validate-Fix outcome without a separate route -\n`_finding_dict` itself is untouched so `list_findings`/the SARIF-\ncomparison call sites keep their existing (attempt-history-free) shape.",
+        "operationId": "get_finding_findings__finding_id__get",
+        "parameters": [
+          {
+            "name": "finding_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Finding Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Finding Findings  Finding Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Findings"
+        ]
+      },
+      "patch": {
+        "summary": "Update Finding",
+        "description": "Story 4.3 AC #3/#4: `status` and `accepted_risk` are independent\naxes - exactly one must be set per request, never both, never neither\n(see `InvalidFindingUpdateRequest`).",
+        "operationId": "update_finding_findings__finding_id__patch",
+        "parameters": [
+          {
+            "name": "finding_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Finding Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFindingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Finding Findings  Finding Id  Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Findings"
+        ]
+      }
+    },
+    "/findings/{finding_id}/timeline/report": {
+      "get": {
+        "summary": "Get Finding Timeline Report",
+        "description": "Story 5.4 AC #5: PDF export of the Finding Timeline (detection event +\nevery Validate-Fix attempt, chronological). Gated `analyst` - matching\n`get_finding`'s own gate, not `get_run_report`'s stricter `admin` gate -\na single Finding's own timeline is data the caller already has full\naccess to via `GET /findings/{finding_id}`. PDF is the only format this\nAC asks for, so no `format` query param/branching.\n\nFree-trial teaser gating: this renders straight from the `Finding`\nentity, bypassing `_finding_dict`'s redaction - so a locked\ncritical/high finding (see `_finding_dict`) must be refused here too,\nor a trial org could recover the withheld detail as a PDF.",
+        "operationId": "get_finding_timeline_report_findings__finding_id__timeline_report_get",
+        "parameters": [
+          {
+            "name": "finding_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Finding Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Findings"
+        ]
+      }
+    },
+    "/pr-reviews": {
+      "get": {
+        "summary": "List Pr Reviews",
+        "operationId": "list_pr_reviews_pr_reviews_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Pr Reviews Pr Reviews Get"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "PR Reviews"
+        ]
+      }
+    },
+    "/pr-reviews/{pr_review_id}": {
+      "get": {
+        "summary": "Get Pr Review",
+        "operationId": "get_pr_review_pr_reviews__pr_review_id__get",
+        "parameters": [
+          {
+            "name": "pr_review_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Pr Review Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Pr Review Pr Reviews  Pr Review Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "PR Reviews"
+        ]
+      }
+    },
+    "/pr-reviews/{pr_review_id}/findings": {
+      "get": {
+        "summary": "Get Pr Review Findings",
+        "description": "Story 6.5 AC #2: mirrors `get_run_findings`'s exact shape - confirm\nthe PR review belongs to the caller's org first (404 otherwise, AD-1),\nthen its findings (Story 6.4's `list_for_pr_review`, previously only\nused internally by `finalize_and_post`). An empty result is a valid\n200, not a 404.",
+        "operationId": "get_pr_review_findings_pr_reviews__pr_review_id__findings_get",
+        "parameters": [
+          {
+            "name": "pr_review_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Pr Review Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Pr Review Findings Pr Reviews  Pr Review Id  Findings Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "PR Reviews"
+        ]
+      }
+    },
+    "/pr-reviews/{pr_review_id}/agent-trace": {
+      "get": {
+        "summary": "Get Pr Review Agent Trace",
+        "description": "Story 6.5 AC #2: mirrors `get_run_agent_trace`'s exact shape so the\nfrontend's `AgentTraceSection` component (Story 4.7, unmodified) works\nagainst either response unchanged.",
+        "operationId": "get_pr_review_agent_trace_pr_reviews__pr_review_id__agent_trace_get",
+        "parameters": [
+          {
+            "name": "pr_review_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Pr Review Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Pr Review Agent Trace Pr Reviews  Pr Review Id  Agent Trace Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "PR Reviews"
+        ]
+      }
+    },
+    "/pr-reviews/{pr_review_id}/events": {
+      "get": {
+        "summary": "Stream Pr Review Events",
+        "description": "Live event stream for a PR review, mirroring `stream_run_events`\n(Story 3.4) exactly - `invoke_engine`'s poll loop is the one shared\nActivity behind both `PentestRunWorkflow` and `PRReviewWorkflow`, and it\npublishes to `run-events:{run_id}` keyed by whatever `sandbox.run_id` it\nwas given, which for a PR review IS the pr_review_id (same \"run_id XOR\npr_review_id\" shared-activity precedent as `capture_evidence`'s\n`entity_kind` dispatch) - so `phase_update`/`cost_update`/`finding`/`log`\nevents already flow for PR reviews with zero worker-side changes; this\nroute just needed to exist on the read side. Access level matches every\nother PR-review route (`require_role(\"analyst\")`), not the run route's\n`admin` gate - Story 6.3/6.4/6.5's own established PR-review role.",
+        "operationId": "stream_pr_review_events_pr_reviews__pr_review_id__events_get",
+        "parameters": [
+          {
+            "name": "pr_review_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Pr Review Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "PR Reviews"
+        ]
+      }
+    },
+    "/findings/{finding_id}/validate-fix": {
+      "post": {
+        "summary": "Trigger Validate Fix",
+        "description": "Story 5.1 AC #1/#2/#4/#5/#6: creates a `ValidateFixAttempt` and starts\nits `ValidateFixWorkflow`, gated at `analyst` to match this route's\n`/findings/*` siblings (not `admin` like `/scopes/{scope_id}/runs` -\nValidate-Fix is triggered from the same Finding Detail page every\nanalyst-level user can already reach).",
+        "operationId": "trigger_validate_fix_findings__finding_id__validate_fix_post",
+        "parameters": [
+          {
+            "name": "finding_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Finding Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriggerValidateFixRequest",
+                "default": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Trigger Validate Fix Findings  Finding Id  Validate Fix Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Findings"
+        ]
+      }
+    },
+    "/findings/{finding_id}/create-fix-pr": {
+      "post": {
+        "summary": "Create Finding Fix Pr",
+        "description": "Fix-PR feature: opens a real GitHub Pull Request applying this\nWhitebox Finding's engine-derived code fix. Gated `admin` (unlike this\nroute's `/findings/*` siblings, gated `analyst`) since this is a\nreal, visible write against the client's own connected repository -\na materially bigger action than triaging/re-testing a finding.",
+        "operationId": "create_finding_fix_pr_findings__finding_id__create_fix_pr_post",
+        "parameters": [
+          {
+            "name": "finding_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Finding Id"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Finding Fix Pr Findings  Finding Id  Create Fix Pr Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Findings"
+        ]
+      }
+    },
+    "/knowledge": {
+      "get": {
+        "summary": "List Knowledge",
+        "operationId": "list_knowledge_knowledge_get",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Knowledge Knowledge Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Knowledge"
+        ]
+      },
+      "post": {
+        "summary": "Create Knowledge",
+        "operationId": "create_knowledge_knowledge_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnowledgeEntryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Knowledge Knowledge Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Knowledge"
+        ]
+      }
+    },
+    "/knowledge/{entry_id}": {
+      "patch": {
+        "summary": "Update Knowledge",
+        "operationId": "update_knowledge_knowledge__entry_id__patch",
+        "parameters": [
+          {
+            "name": "entry_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Entry Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnowledgeEntryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Knowledge Knowledge  Entry Id  Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Knowledge"
+        ]
+      },
+      "delete": {
+        "summary": "Delete Knowledge",
+        "operationId": "delete_knowledge_knowledge__entry_id__delete",
+        "parameters": [
+          {
+            "name": "entry_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Entry Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Knowledge"
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddDomainTestUserRequest": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          },
+          "totp_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totp Secret"
+          },
+          "login_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Login Url"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "is_reusable": {
+            "type": "boolean",
+            "title": "Is Reusable",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "username",
+          "password"
+        ],
+        "title": "AddDomainTestUserRequest"
+      },
+      "AddRepositoriesRequest": {
+        "properties": {
+          "installation_id": {
+            "type": "string",
+            "title": "Installation Id"
+          },
+          "repos": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Repos"
+          }
+        },
+        "type": "object",
+        "required": [
+          "installation_id",
+          "repos"
+        ],
+        "title": "AddRepositoriesRequest"
+      },
+      "AddScopeSurfaceRequest": {
+        "properties": {
+          "host": {
+            "type": "string",
+            "title": "Host"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "host",
+          "source"
+        ],
+        "title": "AddScopeSurfaceRequest"
+      },
+      "AddScopeTargetRequest": {
+        "properties": {
+          "target_type": {
+            "type": "string",
+            "title": "Target Type"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_type",
+          "value"
+        ],
+        "title": "AddScopeTargetRequest"
+      },
+      "Body_add_scope_target_api_spec_scopes__scope_id__targets_api_spec_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_add_scope_target_api_spec_scopes__scope_id__targets_api_spec_post"
+      },
+      "Body_upload_org_logo_org_logo_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_org_logo_org_logo_post"
+      },
+      "Body_upload_scope_document_scopes__scope_id__documents_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_scope_document_scopes__scope_id__documents_post"
+      },
+      "ChangeRoleRequest": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "title": "Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role"
+        ],
+        "title": "ChangeRoleRequest"
+      },
+      "CheckReachabilityRequest": {
+        "properties": {
+          "value": {
+            "type": "string",
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "CheckReachabilityRequest"
+      },
+      "ConnectRepositoryRequest": {
+        "properties": {
+          "installation_id": {
+            "type": "string",
+            "title": "Installation Id"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          }
+        },
+        "type": "object",
+        "required": [
+          "installation_id",
+          "state"
+        ],
+        "title": "ConnectRepositoryRequest"
+      },
+      "CreateDomainRequest": {
+        "properties": {
+          "target_type": {
+            "type": "string",
+            "title": "Target Type"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_type",
+          "value"
+        ],
+        "title": "CreateDomainRequest"
+      },
+      "CreateScopeRequest": {
+        "properties": {
+          "scan_type": {
+            "type": "string",
+            "title": "Scan Type",
+            "default": "blackbox"
+          }
+        },
+        "type": "object",
+        "title": "CreateScopeRequest"
+      },
+      "CustomHeader": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "CustomHeader"
+      },
+      "DnsConnectCallbackRequest": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "state"
+        ],
+        "title": "DnsConnectCallbackRequest"
+      },
+      "DnsConnectStartRequest": {
+        "properties": {
+          "return_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return To"
+          }
+        },
+        "type": "object",
+        "title": "DnsConnectStartRequest"
+      },
+      "ExcludeAllScopeSurfacesRequest": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source"
+        ],
+        "title": "ExcludeAllScopeSurfacesRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "InviteRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "role"
+        ],
+        "title": "InviteRequest"
+      },
+      "KnowledgeEntryRequest": {
+        "properties": {
+          "entry_type": {
+            "type": "string",
+            "title": "Entry Type"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "domain_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Domain Ids",
+            "default": []
+          },
+          "repository_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Repository Ids",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "entry_type",
+          "description"
+        ],
+        "title": "KnowledgeEntryRequest"
+      },
+      "SetScopeRepositoryRequest": {
+        "properties": {
+          "repository_id": {
+            "type": "string",
+            "title": "Repository Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "repository_id"
+        ],
+        "title": "SetScopeRepositoryRequest"
+      },
+      "StartPentestRunRequest": {
+        "properties": {
+          "test_user_selections": {
+            "items": {
+              "$ref": "#/components/schemas/TestUserSelection"
+            },
+            "type": "array",
+            "title": "Test User Selections"
+          },
+          "custom_headers": {
+            "items": {
+              "$ref": "#/components/schemas/CustomHeader"
+            },
+            "type": "array",
+            "title": "Custom Headers"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Idempotency Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "idempotency_key"
+        ],
+        "title": "StartPentestRunRequest"
+      },
+      "TestUserSelection": {
+        "properties": {
+          "domain_id": {
+            "type": "string",
+            "title": "Domain Id"
+          },
+          "test_user_id": {
+            "type": "string",
+            "title": "Test User Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "domain_id",
+          "test_user_id"
+        ],
+        "title": "TestUserSelection"
+      },
+      "TriggerValidateFixRequest": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "title": "TriggerValidateFixRequest"
+      },
+      "UpdateFindingRequest": {
+        "properties": {
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "accepted_risk": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted Risk"
+          }
+        },
+        "type": "object",
+        "title": "UpdateFindingRequest"
+      },
+      "UpdateNotifyEmailOnCompletionRequest": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "cc_emails": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cc Emails"
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled"
+        ],
+        "title": "UpdateNotifyEmailOnCompletionRequest"
+      },
+      "UpdateOrgPrReviewDefaultsRequest": {
+        "properties": {
+          "default_approve_clean_prs": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "on",
+                  "off"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Approve Clean Prs"
+          },
+          "default_block_on_findings": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "on",
+                  "off"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Block On Findings"
+          },
+          "default_rereview_on_push": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "on",
+                  "off"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Rereview On Push"
+          }
+        },
+        "type": "object",
+        "title": "UpdateOrgPrReviewDefaultsRequest"
+      },
+      "UpdateOrgProfileRequest": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "website": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Website"
+          },
+          "industry": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Industry"
+          },
+          "team_size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team Size"
+          }
+        },
+        "type": "object",
+        "title": "UpdateOrgProfileRequest"
+      },
+      "UpdateRepositoryPoliciesRequest": {
+        "properties": {
+          "auto_review_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Auto Review Enabled"
+          },
+          "approve_clean_prs_policy": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "default",
+                  "on",
+                  "off"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approve Clean Prs Policy"
+          },
+          "block_on_findings_policy": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "default",
+                  "on",
+                  "off"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Block On Findings Policy"
+          },
+          "rereview_on_push_policy": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "default",
+                  "on",
+                  "off"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rereview On Push Policy"
+          }
+        },
+        "type": "object",
+        "title": "UpdateRepositoryPoliciesRequest"
+      },
+      "UpdateScopeConstraintsRequest": {
+        "properties": {
+          "excluded_paths": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excluded Paths"
+          },
+          "rate_limit_rps": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate Limit Rps"
+          },
+          "testing_window_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Testing Window Start"
+          },
+          "testing_window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Testing Window End"
+          },
+          "testing_window_timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Testing Window Timezone"
+          },
+          "safe_mode": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safe Mode"
+          }
+        },
+        "type": "object",
+        "title": "UpdateScopeConstraintsRequest"
+      },
+      "UpdateScopeContextRequest": {
+        "properties": {
+          "context_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Text"
+          }
+        },
+        "type": "object",
+        "title": "UpdateScopeContextRequest"
+      },
+      "UpdateScopeEnabledRequest": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled"
+        ],
+        "title": "UpdateScopeEnabledRequest"
+      },
+      "UpdateScopeScheduleRequest": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "frequency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frequency"
+          },
+          "days": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days"
+          },
+          "time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          },
+          "run_now": {
+            "type": "boolean",
+            "title": "Run Now",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled"
+        ],
+        "title": "UpdateScopeScheduleRequest"
+      },
+      "UpdateScopeSurfaceRequest": {
+        "properties": {
+          "classification": {
+            "type": "string",
+            "title": "Classification"
+          }
+        },
+        "type": "object",
+        "required": [
+          "classification"
+        ],
+        "title": "UpdateScopeSurfaceRequest"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VerifyDomainRequest": {
+        "properties": {
+          "method": {
+            "type": "string",
+            "title": "Method"
+          }
+        },
+        "type": "object",
+        "required": [
+          "method"
+        ],
+        "title": "VerifyDomainRequest"
+      }
+    },
+    "securitySchemes": {
+      "ApiToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "A token from Console -> API -> Tokens, prefixed 'vnx_'."
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.vulnix.dev"
+    }
+  ],
+  "security": [
+    {
+      "ApiToken": []
+    }
+  ]
+}

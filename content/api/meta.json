@@ -2,6 +2,7 @@
   "title": "API",
   "defaultOpen": true,
   "pages": [
+    "getting-started",
     "authentication",
     "conventions",
     "webhooks",
@@ -14,6 +15,7 @@
     "knowledge",
     "organization",
     "team",
-    "billing"
+    "billing",
+    "changelog"
   ]
 }

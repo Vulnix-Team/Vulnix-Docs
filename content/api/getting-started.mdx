@@ -1,0 +1,56 @@
+---
+title: Getting Started
+description: Create a token and make your first call — the shortest path from nothing to a working integration.
+---
+
+## 1. Create a token
+
+Go to **API → Tokens** in the console, select **New token**, and tick `runs:read`. Copy it —
+it's shown once. Full detail on scopes and roles is in [Authentication](/api/authentication).
+
+## 2. Make a call
+
+```bash
+curl https://api.vulnix.dev/runs \
+  -H "Authorization: Bearer vnx_your_token_here"
+```
+
+```json
+{
+  "runs": [
+    {
+      "id": "01M2NMSFVBHZTYR842YNP45TF3",
+      "scope_id": "01M2NMSFVBHZTYR842YNP45TF4",
+      "status": "finished",
+      "started_at": "2026-09-16T17:20:04.708773+00:00",
+      "completed_at": "2026-09-16T18:04:11.229104+00:00"
+    }
+  ]
+}
+```
+
+That is every request: a token in the `Authorization` header, a plain JSON response, no
+envelope and no version segment in the path. [Conventions](/api/conventions) covers what holds
+true for every endpoint — read it once rather than per-resource.
+
+## 3. Find the endpoint you need
+
+<Cards>
+  <Card title="Runs" href="/api/runs" description="Start a pentest, poll its status, fetch its findings and report." />
+  <Card title="Findings" href="/api/findings" description="List findings across runs, change a finding's status." />
+  <Card title="Webhooks" href="/api/webhooks" description="Get a signed POST the moment a run finishes, instead of polling." />
+  <Card title="Domains" href="/api/domains" description="Add and verify the web targets a pentest runs against." />
+  <Card title="Repositories" href="/api/repositories" description="Connect a source repository for whitebox pentesting and PR review." />
+</Cards>
+
+## 4. Prefer events to polling
+
+`GET /runs/{run_id}` works, but a [webhook](/api/webhooks) is one setup step in the console and
+then Vulnix calls you — no loop, no wasted requests while a run is still executing.
+
+## Machine-readable spec
+
+The full public surface — every endpoint above and the ones not linked here — is published as
+an OpenAPI 3.1 document: [`openapi.json`](/openapi.json). Import it into Postman or Insomnia, or
+generate a typed client for your own language. It is generated from the same allowlist that
+decides what a token can reach at runtime, so it can't drift ahead of or behind the real API.
