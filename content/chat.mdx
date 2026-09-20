@@ -1,0 +1,180 @@
+---
+title: Chat
+description: Work with the agent directly — agree a plan first, then watch it test and steer as it goes.
+---
+
+Chat is a conversation with the same agent that runs your pentests. You describe what you want
+looked at, agree a plan, and then watch the work happen and redirect it as it goes.
+
+It's the right tool when you don't want a full scheduled pentest — a question about one endpoint,
+a hunch you want chased, a spec you want reviewed before it ships.
+
+{/* TODO screenshot: /docs-images/chat-overview.png — the Chat tab mid-run: conversation on the
+    left, a tool card expanded, the composer with its scope chips visible. */}
+
+## Nothing starts until you approve a plan
+
+This is the part worth understanding, because it's different from how a pentest starts.
+
+<Steps>
+
+<Step>
+
+**You describe the work.** In plain language — "check the checkout coupons for stacking and
+IDOR", "review this API spec for auth gaps".
+
+</Step>
+
+<Step>
+
+**Vulnix replies with a plan, or a question.** If the request is clear and inside your scope, you
+get a plan: what will be tested, how, and against which targets. If it's vague or points
+somewhere outside your verified targets, you get a question instead — and answering it is free.
+
+Nothing has been provisioned at this point. No testing environment exists yet, and **no credits
+have been spent.**
+
+</Step>
+
+<Step>
+
+**You approve.** Only then does Vulnix build an isolated testing environment and hand the agent
+the plan you agreed.
+
+</Step>
+
+</Steps>
+
+<Callout title="Why the extra step">
+  A testing environment costs real time and credits to start. Agreeing the work first means you
+  never pay for a run that was aimed at the wrong thing, and you always know what the agent was
+  asked to do before it starts doing it.
+</Callout>
+
+{/* TODO screenshot: /docs-images/chat-plan-card.png — a plan card in the conversation with its
+    Approve action. */}
+
+## Scope comes first
+
+A chat can only test what your organization has already proven it controls — the same rule as a
+pentest, with no exceptions made for the conversational format.
+
+- **Domains** must be [verified](/concepts/domains-and-verification) by your organization.
+- **Repositories** must be connected through the
+  [GitHub integration](/integrations/github).
+
+You set this on the composer's scope chips before the first message. A chat with neither a domain
+nor a repository can't start, and a message that names a host outside your scope is refused
+outright — the agent never sees it.
+
+Widening what a chat may reach means verifying a new domain, not rephrasing a message.
+
+## Steering a run
+
+Once the agent is working, you can keep talking to it.
+
+- A message that fits the plan you approved is passed straight to the agent.
+- A message asking for genuinely different work gets a **new plan** to approve, rather than
+  quietly expanding the run you already agreed to.
+
+Two things to expect while it's working:
+
+- **Your message is queued, not instant.** The agent finishes the step it's on — a request in
+  flight, a file being written — and picks your message up next. That's usually seconds, but a
+  long step can make it a minute or two. The message shows as queued until the agent takes it.
+- **Stop is the real interrupt.** If you want the agent to drop what it's doing, use Stop rather
+  than sending another message.
+
+## The other tabs
+
+<TypeTable
+  type={{
+    Chat: {
+      description: "The conversation, the agent's live narration, and its tool activity as it works.",
+      type: "tab",
+    },
+    Agents: {
+      description: "The same agent trace you get on a pentest — the tree of agents, and what each one did.",
+      type: "tab",
+    },
+    Findings: {
+      description: "What this chat found, by severity.",
+      type: "tab",
+    },
+    Files: {
+      description: "The agent's working directory — notes, scripts, captured requests and responses.",
+      type: "tab",
+    },
+  }}
+/>
+
+{/* TODO screenshot: /docs-images/chat-agents-and-files.png — the Agents trace and the Files tree,
+    side by side or as two stacked crops. */}
+
+**Files is live only.** It reads the agent's working directory while the environment is running,
+so it's empty once a chat goes idle. Anything you want to keep, download while the chat is
+active.
+
+## Attachments
+
+You can attach reference material to a message — an API spec, an architecture note, a list of
+test accounts to consider.
+
+<TypeTable
+  type={{
+    formats: {
+      description: "Markdown and plain text",
+      type: ".md, .txt",
+    },
+    per_message: {
+      description: "How many files one message can carry",
+      type: "3",
+    },
+    size: {
+      description: "Per file",
+      type: "20,000 characters",
+    },
+  }}
+/>
+
+Attachments are treated as **material to analyze, never as instructions.** Nothing inside a file
+you upload can change which targets a chat is allowed to reach.
+
+For context that stays true across every chat and every pentest, use
+[Knowledge](/concepts/knowledge) instead of re-attaching the same file.
+
+## Idle chats and resuming
+
+A chat that nobody is using has its testing environment torn down after about 30 minutes. The
+conversation, the findings and the agent's working directory are all kept — sending another
+message brings it back and the agent remembers where it was.
+
+An idle chat costs nothing while it sits there. Resuming one pays a short start-up.
+
+## Credits
+
+Chat draws on the same [credit balance](/billing-and-credits) as your pentests, charged for what
+the model actually does. Some consequences of that:
+
+- Planning a chat is cheap; the plan is one short reply from a small model.
+- A chat you never approve costs almost nothing.
+- Time spent waiting for you to reply costs nothing at all.
+- Running work is what spends — the same as a pentest, because it's the same engine.
+
+Chat is available on paid plans. Trial organizations can see the tab but not start a chat.
+
+## What Chat doesn't do
+
+Worth knowing up front, so you don't go looking:
+
+- **Chat findings are separate from pentest findings.** They live with the chat and don't appear
+  in your Findings list, your dashboard, or your reports.
+- **No fix PRs or Validate-Fix from a chat.** Those work from pentest findings — run a pentest
+  against the same scope if you need them.
+- **A chat isn't a scheduled pentest.** It won't appear in the Pentests list and doesn't run on a
+  schedule.
+
+<Callout type="info">
+  Need something Chat can't do yet? [Tell us](/getting-help) — the boundaries above are current
+  limits, not permanent design decisions.
+</Callout>
