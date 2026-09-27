@@ -2,7 +2,7 @@ import path from "node:path";
 
 import type { source } from "@/lib/source";
 
-const GITHUB_REPO = "bosamraprivate-cloud/vulnix-docs";
+const GITHUB_REPO = "Vulnix-Team/Vulnix-Docs";
 const CONTENT_DIR = path.join(process.cwd(), "content");
 
 type DocsPage = ReturnType<typeof source.getPage>;
