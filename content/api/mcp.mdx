@@ -1,0 +1,79 @@
+---
+title: MCP (AI apps)
+description: Connect Claude, ChatGPT or any app that supports the Model Context Protocol to your Vulnix workspace, and drive pentests and findings in plain language.
+---
+
+Vulnix runs a hosted MCP server. Add it to an AI app, sign in with your Vulnix account, choose
+what the app may do, and then ask it things like "start a pentest on the staging scope" or
+"which critical findings are still open?".
+
+```
+https://mcp.vulnix.dev/mcp
+```
+
+## Connecting an app
+
+1. In your AI app, add a custom connector (a remote MCP server) with the URL above.
+2. The app opens a Vulnix sign-in page. Sign in, pick the workspace, and tick what the app may
+   do.
+3. Select **Allow**. You're sent back to the app, connected.
+
+Nothing is installed and no token is copied. The app gets its own connection, which you can see
+and disconnect under **API → MCP** in the console.
+
+<Callout type="info" title="Permissions">
+  The permissions are the same scopes as [API tokens](/api/authentication). A connection can
+  never do more than the person who connected it: if their role changes, the connection changes
+  with it. Permissions that spend credits (starting pentests, re-testing fixes, opening fix PRs)
+  are never ticked for you.
+</Callout>
+
+If the app later needs a permission it wasn't given, it asks you to reconnect with that
+permission added. Your AI app will also ask you to confirm before it runs any action that
+changes something.
+
+## What an app can do
+
+Every tool maps to an existing API route, with the same rules, limits and trial restrictions.
+
+| Area | Tools |
+| --- | --- |
+| Pentests | list, get, progress, agent trace, findings, compare two runs, report (JSON or SARIF), start, stop, wait for a run to finish |
+| Findings | list (by status and severity), get, history, update status or accept risk, check a fix, open a fix PR |
+| Overview | security score, open issues over time, remediation time |
+| Domains | list, get, findings and pentests per domain, test accounts, add, verify, remove |
+| Scopes | list, get, create, targets, surface classification, constraints, context, repository, schedule |
+| Knowledge | list, add, edit, delete |
+| Repositories and PR reviews | list and read, PR review settings, PR review findings |
+| Organization | update profile, list members, invite |
+| Billing | plan and credits, plans, credit history |
+| Search | `search` and `fetch` across findings, pentests and domains |
+
+Chat and webhooks are console features and are not available to AI apps.
+
+## Workspace rules
+
+Owners and admins control AI apps under **API → MCP**:
+
+- **Allow AI apps to connect.** Turning this off stops every connection immediately.
+- **Limit what apps can do.** A ceiling on the permissions anyone can grant. Existing
+  connections are narrowed at their next request.
+
+Admins also see every connection in the workspace and can disconnect any of them.
+
+## Agents without a browser
+
+A CI job or a headless agent can't complete a sign-in page. It can call the same server with an
+[API token](/api/authentication) as a bearer header instead:
+
+```
+Authorization: Bearer vnx_...
+```
+
+The token's scopes decide which tools work.
+
+## Limits
+
+Each tool call counts against the connection's [rate limits](/api/conventions#rate-limits), the
+same as an API call: 120 per minute, and 10 per minute for actions that start a pentest or
+re-test a fix.

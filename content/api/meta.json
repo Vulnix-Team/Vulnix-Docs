@@ -6,6 +6,7 @@
     "authentication",
     "conventions",
     "webhooks",
+    "mcp",
     "runs",
     "findings",
     "scopes",
