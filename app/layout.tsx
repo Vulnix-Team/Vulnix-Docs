@@ -8,7 +8,7 @@ import { satoshi } from "@/app/fonts/satoshi";
 import { source } from "@/lib/source";
 import { baseOptions } from "@/lib/layout.shared";
 import { DocsSocialLinks } from "@/components/docs-social-links";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
+import { COMPANY_LEGAL_NAME, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 import "./globals.css";
 
@@ -29,6 +29,9 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
+  creator: COMPANY_LEGAL_NAME,
+  publisher: COMPANY_LEGAL_NAME,
+  authors: [{ name: COMPANY_LEGAL_NAME, url: "https://vulnix.dev" }],
   openGraph: {
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
