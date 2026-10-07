@@ -5,6 +5,13 @@ description: Answers to what people actually ask before and during their first s
 
 <Accordions type="single">
 
+<Accordion title="What is Vulnix?">
+Vulnix is an AI penetration testing platform. You connect a target (a domain you have verified, or
+a GitHub repository), and an autonomous agent tests it inside its own isolated sandbox. It keeps
+only the findings it can prove with a working exploit, and it can re-run that exploit later to check
+a fix. The same engine also reviews pull requests. See [Getting Started](/getting-started).
+</Accordion>
+
 <Accordion title="Do I need to sign anything before Vulnix can test my domain?">
 No separate legal authorization form — verifying that you actually control the domain (DNS TXT
 record, an uploaded file, or a meta tag) is what gates whether a run against it can start. See
@@ -34,8 +41,9 @@ working connections.
 </Accordion>
 
 <Accordion title="Is there a public API?">
-Not today. Report data is available as a structured JSON export per run, and SARIF for CI
-pipelines — see [Findings & Reports](/findings-and-reports).
+Yes. A REST API at `https://api.vulnix.dev` with scoped tokens, signed webhooks for finished
+pentests, PR review verdicts and finding changes, and a hosted MCP server for AI apps. Reports also
+export as JSON and SARIF per run. See [API Getting Started](/api/getting-started).
 </Accordion>
 
 <Accordion title="What's the difference between marking a finding 'fixed' and running Validate Fix?">
