@@ -15,7 +15,7 @@ import { DocsSocialLinks } from "@/components/docs-social-links";
 import { MarkdownCopyButton, ViewOptionsPopover } from "@/components/docs-page-actions";
 import { getGithubUrl, getMarkdownUrl } from "@/lib/docs-page-actions";
 import shareImage from "@/app/opengraph-image.png";
-import { SITE_NAME, SITE_URL } from "@/lib/seo";
+import { COMPANY_LEGAL_NAME, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 // The site's share card. A page's own `openGraph`/`twitter` replaces the
 // layout's whole object, image included, so every docs page went out with no
@@ -31,6 +31,16 @@ const SHARE_IMAGE = {
 const PUBLISHER = {
   "@type": "Organization",
   name: "Vulnix",
+  legalName: COMPANY_LEGAL_NAME,
+  foundingDate: "2026-09-30",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "131 Continental Dr, Suite 305",
+    addressLocality: "Newark",
+    addressRegion: "DE",
+    postalCode: "19713",
+    addressCountry: "US",
+  },
   url: "https://vulnix.dev",
   sameAs: [
     "https://www.linkedin.com/company/vulnix-dev",
