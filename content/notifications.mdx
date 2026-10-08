@@ -1,63 +1,106 @@
 ---
 title: Notifications
-description: What Vulnix tells you, and when it also sends an email.
+description: What Vulnix tells you, how, and how to choose.
 ---
 
-Vulnix keeps you informed through an in-app notification feed, and escalates a small set of
-events to email — the ones an in-app feed alone can't reliably reach you for.
+Vulnix tells you about three kinds of things: what your pentests found, what needs your attention
+(an assigned finding, a failed payment, a schedule about to run), and a few short guides while you
+get started. Everything shows in the bell inside Vulnix. Some of it also reaches you by email, and
+a few alerts can reach you as a browser notification. You choose which, per person.
 
-## The notification feed
+## The bell
 
 Every user has a bell icon with an unread count. From the feed you can mark individual
-notifications read, dismiss them, or mark everything read at once — older notifications load on
-demand rather than all at once.
+notifications read, dismiss them, or mark everything read at once. Older notifications load on
+demand rather than all at once. The bell is always on.
 
-## What triggers a notification
+## Choose what reaches you
+
+Open **Settings > Notifications**. Each row is a kind of message, with a switch for email and, where
+it applies, one for browser notifications. Your choices are yours alone and never change anyone
+else's.
 
 <TypeTable
   type={{
-    team: {
-      description: "Invites sent and accepted, role changes, members removed",
-      type: "in-app",
+    pentest_results: {
+      description: "A pentest you started finishes, fails or is stopped. Also a heads-up while a pentest is still running when a critical or high finding is proven.",
+      type: "email + browser, on by default",
     },
-    verification: {
-      description: "Domain ownership verification succeeding or failing",
-      type: "in-app",
+    assignments: {
+      description: "A teammate makes you the owner of a finding. The message gives its severity and fix-by date, never its details.",
+      type: "email, on by default",
     },
-    account: {
-      description: "Email verification, password changes",
-      type: "in-app + email",
+    schedules: {
+      description: "A reminder before a new or changed schedule's first run, and PR reviews that failed or were skipped (at most one email a day per workspace).",
+      type: "email + browser, on by default",
+    },
+    credits_trial: {
+      description: "Your trial is ending (3 days, 1 day, and when it has ended), credits running low or out, and a PR review skipped for lack of credits (at most one email a day per workspace).",
+      type: "email, on by default",
+    },
+    tips: {
+      description: "A few short emails from Dot while you set up, and a catch-up if you have been away for a while. They stop once you are up and running.",
+      type: "email, on by default",
+    },
+    digest: {
+      description: "Monday morning: pentests run, new findings, and what got fixed. Skipped when nothing happened.",
+      type: "email, on for workspace owners",
+    },
+    product_updates: {
+      description: "Occasional news about what's new in Vulnix.",
+      type: "email, off until you turn it on",
+    },
+    security: {
+      description: "Password changes, GitHub access that was revoked or disconnected, and a webhook endpoint that was disabled.",
+      type: "email, always on",
     },
     billing: {
-      description: "Payment failures, plan changes, credit adjustments",
-      type: "in-app + email (payment failures)",
-    },
-    runs: {
-      description: "A pentest run reaching a terminal state",
-      type: "in-app, + email if you opt in per scope",
-    },
-    validate_fix: {
-      description: "The outcome of a Validate Fix re-test",
-      type: "in-app",
-    },
-    pr_review: {
-      description: "PR review outcomes GitHub's own UI doesn't already surface, and an automated Fix PR being opened",
-      type: "in-app",
-    },
-    github_app: {
-      description: "Your GitHub App installation being revoked or disconnected",
-      type: "in-app",
+      description: "Failed payments and cancelled subscriptions, for the people who manage billing.",
+      type: "email, always on",
     },
   }}
 />
 
-<Callout title="Why only some events are emailed">
-  Most events are in-app only by design — email is reserved for the handful of cases where
-  missing the notification would actually hurt you (a failed payment, a changed password), or
-  where you've explicitly asked to be told (opting in to run-completion emails on a scope).
+<Callout title="Security and billing email can't be turned off">
+  A changed password or a failed payment is the kind of message you would never want to miss by
+  accident, so these two rows are locked on.
 </Callout>
 
-## Opting into run-completion emails
+### What an email contains
 
-Per-scope, under its configuration: turn on "notify on completion" and every run against that
-scope emails you when it finishes, on top of the in-app notification everyone gets by default.
+Emails tell you that something happened and how much (for example, a pentest finished with
+2 critical and 5 medium findings), then link you into Vulnix. They never contain the findings
+themselves, evidence, or credentials. Open the link to see the details.
+
+### Quiet hours and limits
+
+Getting-started tips, catch-up emails and trial and credit notices are held between 9 pm and 8 am
+in your own time zone (Vulnix picks it up from your browser), and you receive at most one of them a
+day and three a week. Pentest results, assignments, schedule reminders, security and billing emails
+are not held.
+
+## Browser notifications
+
+Turn on **Browser notifications** in Settings > Notifications to hear the moment a pentest
+finishes, or proves a critical finding while it is still running, even when Vulnix is not open.
+It is a per-device switch: turn it on in each browser you want. Your browser asks for permission
+the first time. Browser notifications carry a short line of counts and a link, nothing else.
+
+## Pentest-finished emails
+
+The email when a pentest finishes goes to whoever started it, and is on by default for every scope.
+You can switch it off for a scope, or add extra addresses to copy, when you set up the pentest.
+
+## Unsubscribing
+
+Every optional email has an **Unsubscribe** link, and mail apps that show their own unsubscribe
+button work too. One click turns off that kind of email. You can switch it back on any time in
+Settings > Notifications. Security and billing emails have no unsubscribe link because they
+cannot be turned off.
+
+If an address bounces or is reported as spam, Vulnix stops emailing it. If that happened by
+mistake, contact support from [Getting help](/getting-help).
+
+## Replies
+
+Replies to any Vulnix email reach support at support@vulnix.dev.
