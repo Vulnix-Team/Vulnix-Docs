@@ -41,9 +41,10 @@ the agent differently, produce different kinds of findings, and are priced diffe
 
 ## Blackbox
 
-You point Vulnix at a live web app, API, or **public IP range** you've already **verified you
-own** — verification, not a signed authorization form, is what gates whether a run against that
-target can start at all. The agent then tests it the way an external attacker would: no source
+You point Vulnix at a live web app or API on a domain you've **verified you own**, or at a
+**public IP range**. For a domain, verification, not a signed authorization form, is what gates
+whether a run against it can start at all. An IP range can't be verified that way (see below), so
+test only ranges you own. The agent then tests it the way an external attacker would: no source
 access, no internal context, just what's actually reachable over the network.
 
 An IP-range target (a single public IP or a CIDR block like `203.0.113.0/24`) is port- and
