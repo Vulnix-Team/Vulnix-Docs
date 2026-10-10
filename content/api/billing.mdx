@@ -1,14 +1,21 @@
 ---
 title: Billing
-description: Read the plan, credit balance, and ledger history — so automation can check it can afford to run before it tries.
+description: Read the plan, the pentests and PR reviews left, and ledger history, so automation can check there is a pentest left before it starts one.
 ---
 
 Billing over the API is **read-only**. There is a `billing:read` scope and no `billing:write`,
 because nothing a token can do should be able to move money.
 
-The reason to reach for these endpoints is the one that matters in CI: checking you can afford
-a run *before* starting one, so a pipeline fails with a clear message instead of a
+The reason to reach for these endpoints is the one that matters in CI: checking you have a pentest
+left *before* starting one, so a pipeline fails with a clear message instead of a
 `422 credits_exhausted` halfway through.
+
+<Callout type="info" title="Two kinds of plan">
+  Free, Builder, Startup and Pro are counted in **pentests and PR reviews** (`pricing: "units"`).
+  Starter, the earlier Pro plan and Enterprise are billed in **credits** (`pricing: "credits"`).
+  See [Plans & Billing](/billing-and-credits). Read `pricing` first and use the fields that go
+  with it.
+</Callout>
 
 ## Plans
 
@@ -24,7 +31,10 @@ Every plan available, not just yours.
       "name": "…",
       "monthly_price_usd": 0,
       "monthly_credits": 0,
-      "is_self_serve": true
+      "is_self_serve": true,
+      "pricing": "units",
+      "monthly_pentests": 0,
+      "monthly_pr_reviews": 0
     }
   ]
 }
@@ -35,8 +45,11 @@ Every plan available, not just yours.
     id: { type: "string", description: "Plan identifier." },
     name: { type: "string", description: "Display name." },
     monthly_price_usd: { type: "number", description: "Recurring price." },
-    monthly_credits: { type: "number", description: "Credits granted each period." },
-    is_self_serve: { type: "boolean", description: "`false` means it is arranged with sales rather than bought in the console." },
+    monthly_credits: { type: "number", description: "Credits granted each period. Internal on `units` plans; read `monthly_pentests` there." },
+    is_self_serve: { type: "boolean", description: "`false` means it is not bought in the console: Enterprise, and Starter and the earlier Pro, which are no longer sold." },
+    pricing: { type: "string", description: "`units` (sold as pentests and PR reviews) or `credits`." },
+    monthly_pentests: { type: "number | null", description: "Pentests included each month. Null on `credits` plans." },
+    monthly_pr_reviews: { type: "number | null", description: "PR reviews included each month. Null on `credits` plans." },
   }}
 />
 
@@ -58,28 +71,35 @@ Everyone else:
   type={{
     is_exempt: { type: "boolean", description: "`false` here. When `true`, no other field is present." },
     plan: { type: "object | null", description: "The current plan object, or null if none." },
-    is_trial: { type: "boolean", description: "Whether this is a free trial. Drives [withheld detail](/api/conventions#withheld-detail-on-the-free-trial)." },
-    trial_ends_at: { type: "string | null", description: "ISO 8601." },
+    is_trial: { type: "boolean", description: "Whether the organization is on the Free plan. Drives [withheld detail](/api/conventions#withheld-detail-on-the-free-trial)." },
+    trial_ends_at: { type: "null", description: "Always null. Free doesn't expire; kept so existing clients don't break." },
+    pricing: { type: "string", description: "`units` on Free, Builder, Startup and Pro; `credits` on Starter, the earlier Pro and Enterprise." },
+    pentests: { type: "object | null", description: "`{ left }`: pentests you can still start. Null on `credits` plans." },
+    pr_reviews: { type: "object | null", description: "`{ used, included, resets_at }`: PR reviews this month and when the count resets (ISO 8601). Null on `credits` plans." },
     subscription_status: { type: "string | null", description: "Subscription state." },
     current_period_start: { type: "string | null", description: "ISO 8601." },
-    current_period_end: { type: "string | null", description: "ISO 8601. When monthly credits refresh." },
+    current_period_end: { type: "string | null", description: "ISO 8601. When the monthly allowance (or monthly credits) refresh." },
     cancel_at_period_end: { type: "boolean", description: "Whether the subscription lapses at period end." },
     grace_period_ends_at: { type: "string | null", description: "Set after a failed payment — work still runs until this passes." },
-    monthly_balance_usd: { type: "number", description: "Plan credits left this period. Spent first, and they do not roll over." },
-    topup_balance_usd: { type: "number", description: "Purchased credits. Spent after monthly credits, and they persist." },
-    credit_balance_usd: { type: "number", description: "The two above added together — the number to compare against a run's price." },
+    monthly_balance_usd: { type: "number", description: "`credits` plans: plan credits left this period. Spent first, and they do not roll over." },
+    topup_balance_usd: { type: "number", description: "`credits` plans: purchased credits. Spent after monthly credits, and they persist." },
+    credit_balance_usd: { type: "number", description: "`credits` plans: the two above added together, the number to compare against a run's price. On `units` plans use `pentests.left`." },
   }}
 />
 
 <Callout type="warn" title="`is_exempt: true` means the other fields are absent, not zero">
   Demo and internal organizations return only `{ "is_exempt": true }`. Code that reads
-  `credit_balance_usd` unconditionally will throw on them. Check `is_exempt` first and treat it
+  `pentests` or `credit_balance_usd` unconditionally will throw on them. Check `is_exempt` first and treat it
   as "spending is not limited here".
 </Callout>
 
-### Monthly credits are spent before top-up credits
+### Allowances reset at the period boundary
 
-`monthly_balance_usd` resets at `current_period_end` and does not carry over.
+On `units` plans, `pentests.left` is topped up to the plan's allowance at `current_period_end`, and
+unused pentests don't carry over. `pr_reviews.used` goes back to zero at `pr_reviews.resets_at`:
+the end of the billing period on a paid plan, the end of the calendar month on Free.
+
+On `credits` plans, `monthly_balance_usd` resets at `current_period_end` and does not carry over.
 `topup_balance_usd` persists until spent. So a healthy-looking `credit_balance_usd` can still
 be about to shrink at the period boundary — if you are scheduling work near it, read the two
 components, not just the total.
@@ -88,7 +108,9 @@ components, not just the total.
 
 `GET /billing/history` · scope `billing:read` · role **`admin`**
 
-Every credit movement, for reconciliation and per-team cost attribution.
+Every ledger movement, for reconciliation and per-team cost attribution. On `units` plans a pentest
+is recorded as a fixed internal amount, so count `run_debit` entries rather than summing them. PR
+reviews on those plans come from the monthly allowance and don't appear here.
 
 ```json
 {
@@ -129,19 +151,35 @@ Anything that moves money is unreachable with a token, whatever scopes it carrie
 <TypeTable
   type={{
     "POST /billing/checkout/subscription": { description: "Start a plan checkout." },
-    "POST /billing/checkout/topup": { description: "Buy additional credits." },
+    "POST /billing/checkout/topup": { description: "Buy additional credits. `credits` plans only: on `units` plans it returns `topup_requires_active_plan`." },
     "POST /billing/portal": { description: "Open the Stripe billing portal." },
     "POST /billing/subscription/auto-renewal": { description: "Turn auto-renewal on or off." },
     "POST /billing/subscription/upgrade": { description: "Change plan." },
   }}
 />
 
-Starting a pentest *does* spend credits and *is* available with `runs:write` — that is the
-automation people actually need, and its cost is bounded and predictable. Changing what you owe
+Starting a pentest *does* use a pentest (or credits) and *is* available with `runs:write` — that
+is the automation people actually need, and its cost is bounded and predictable. Changing what you owe
 every month is not. See
 [what tokens cannot do](/api/authentication#what-tokens-cannot-do).
 
 ## Checking affordability before a run
+
+On Free, Builder, Startup and Pro, one pentest is one pentest, whatever the scope:
+
+```bash
+LEFT=$(curl -fsS https://api.vulnix.dev/billing/status \
+  -H "Authorization: Bearer $VULNIX_TOKEN" \
+  | jq 'if .is_exempt then 1e9 elif .pricing == "units" then .pentests.left else -1 end')
+
+if [ "$LEFT" = "0" ]; then
+  echo "No pentests left this month" >&2
+  exit 1
+fi
+```
+
+On Starter, the earlier Pro plan and Enterprise (`pricing: "credits"`), compare the credit balance
+with the scope's estimate instead:
 
 ```bash
 BALANCE=$(curl -fsS https://api.vulnix.dev/billing/status \
