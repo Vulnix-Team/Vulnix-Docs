@@ -32,7 +32,9 @@ If you lose it, open the endpoint and select **Rotate secret**.
   }}
 />
 
-An organization can have up to **10** endpoints.
+An organization can have up to **10** endpoints. Adding one needs Startup, Pro or Enterprise
+(Starter and the earlier Pro plan keep it too); on Free and Builder it returns
+`403 automation_requires_startup_plan`. Endpoints added before a plan change keep receiving events.
 
 ## Events
 

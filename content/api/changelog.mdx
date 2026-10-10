@@ -13,6 +13,16 @@ without diffing the reference by hand.
   Everything below is additive: a new endpoint, a new scope, a new event.
 </Callout>
 
+## 2026-10
+
+- **New plans.** `GET /billing/status` adds `pricing`, `pentests` (`{ left }`) and `pr_reviews`
+  (`{ used, included, resets_at }`); each plan adds `pricing`, `monthly_pentests` and
+  `monthly_pr_reviews`. `GET /runs/{run_id}` adds `pentests_charged`. A `credits_exhausted` error on
+  Free, Builder, Startup and Pro carries `details.unit: "pentest"`. See [Billing](/api/billing).
+- **Whitebox on every plan.** `POST /scopes` no longer returns `whitebox_requires_paid_plan`.
+- **New error code** `automation_requires_startup_plan` when Free or Builder creates an API token or
+  webhook endpoint. Existing tokens and endpoints are unaffected.
+
 ## 2026-09
 
 - **Webhooks.** Subscribe an endpoint in the console to get a signed `POST` the moment a run

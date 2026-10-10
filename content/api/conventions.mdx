@@ -169,7 +169,7 @@ each offending value:
     api_token_scope_missing: { type: "403", description: "Valid token, missing scope. `details.required_scope` names what to tick." },
     insufficient_role: { type: "403", description: "The scope is present but the creator's role is too low for this endpoint." },
     api_token_route_not_allowed: { type: "403", description: "Console-only endpoint. No scope unlocks it." },
-    premium_detail_required: { type: "403", description: "Free trial: the export bundles detail the plan withholds. See below." },
+    premium_detail_required: { type: "403", description: "Free plan: the export bundles detail the plan withholds. See below." },
     rate_limited: { type: "429", description: "Slow down. `Retry-After` says how long." },
   }}
 />
@@ -180,7 +180,8 @@ each offending value:
   type={{
     "404 `*_not_found`": { description: "`run_not_found`, `finding_not_found`, `domain_not_found`, `repository_not_found`, `scope_not_found`, `pr_review_not_found`, `knowledge_entry_not_found`. A record in another organization returns exactly this, never a 403 — the API never confirms that an id it cannot show you exists." },
     "409 conflict": { description: "The record exists but is in the wrong state: `run_not_stoppable`, `fix_pull_request_already_exists`, `finding_risk_already_accepted`, `repository_already_revoked`, `domain_delete_blocked`, `validate_fix_already_in_progress`." },
-    "422 unprocessable": { description: "The request is well-formed but the operation is not allowed yet: `scope_has_no_targets`, `scope_verification_lost`, `whitebox_pentest_missing_repository`, `credits_exhausted`, `invalid_finding_status`." },
+    "403 plan": { description: "The feature isn't on your plan: `scheduling_requires_paid_plan` and `automation_requires_startup_plan` (both need Startup or above), `chat_requires_paid_plan`. See [Plans & Billing](/billing-and-credits#what-each-plan-unlocks)." },
+    "422 unprocessable": { description: "The request is well-formed but the operation is not allowed yet: `scope_has_no_targets`, `scope_verification_lost`, `whitebox_pentest_missing_repository`, `credits_exhausted` (no pentests or credits left), `invalid_finding_status`." },
   }}
 />
 
@@ -224,7 +225,7 @@ no time and guarantees the next request lands in a fresh window.
 
 ## Withheld detail on the free trial
 
-On a free trial, findings rated `critical` or `high` come back with a reduced shape: `id`,
+On the Free plan (`is_trial: true`), findings rated `critical` or `high` come back with a reduced shape: `id`,
 `run_id`, `domain_id`, `severity`, `status`, `created_at`, and `locked: true`. The title,
 description, CVSS, proof of concept, and remediation steps are omitted rather than blanked.
 

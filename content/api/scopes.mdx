@@ -15,7 +15,7 @@ when. A [run](/api/runs) always executes against one scope, so a scope is what y
     id: { type: "string", description: "ULID." },
     status: { type: "string", description: "`draft` until it has been authorized." },
     scan_type: { type: "string", description: "`blackbox` (test a running target) or `whitebox` (also read the source)." },
-    scan_mode: { type: "string", description: "`quick`, `standard`, or `deep`. Derived from your plan — trial organizations get `quick`. Not settable." },
+    scan_mode: { type: "string", description: "`deep` for every new scope, on every plan. Scopes created before the current plans may still read `quick` or `standard`. Not settable." },
     targets: { type: "array", description: "What will be tested. See below." },
     surfaces: { type: "array", description: "Hosts discovered around the targets, and whether each may be touched." },
     repository_id: { type: "string | null", description: "Source repository. Required for `whitebox`." },
@@ -31,7 +31,7 @@ when. A [run](/api/runs) always executes against one scope, so a scope is what y
     notify_email_on_completion: { type: "boolean", description: "Email when a run on this scope finishes." },
     notify_email_cc: { type: "array", description: "Extra addresses to copy." },
     estimated_duration_minutes: { type: "number", description: "Estimate for the configured scope." },
-    estimated_cost_usd: { type: "number", description: "Estimate for the configured scope." },
+    estimated_cost_usd: { type: "number", description: "Estimate for the configured scope, in credits. Only meaningful on `credits` plans; on the others a run uses one pentest." },
   }}
 />
 
@@ -47,7 +47,7 @@ when. A [run](/api/runs) always executes against one scope, so a scope is what y
 
 <TypeTable
   type={{
-    scan_type: { type: "string", description: "`blackbox` (default) or `whitebox`. `whitebox` requires a paid plan — otherwise `403 whitebox_requires_paid_plan`." },
+    scan_type: { type: "string", description: "`blackbox` (default) or `whitebox`. Both are available on every plan, Free included." },
   }}
 />
 

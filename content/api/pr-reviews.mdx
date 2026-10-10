@@ -35,7 +35,7 @@ not start them.
     github_posted: { type: "boolean", description: "Whether posting to GitHub actually succeeded." },
     files_changed: { type: "number | null", description: "Files in the diff." },
     cost_usd: { type: "number | null", description: "Measured model spend." },
-    credits_charged: { type: "number", description: "Flat price per review — never varies." },
+    credits_charged: { type: "number | null", description: "Flat credit price per review on Starter, the earlier Pro and Enterprise. Null on Free, Builder, Startup and Pro, where a review uses one of the month's included reviews." },
   }}
 />
 

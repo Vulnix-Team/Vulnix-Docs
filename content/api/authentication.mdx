@@ -17,6 +17,12 @@ accidentally committed to a public repository gets flagged rather than quietly l
 
 Go to **API → Tokens** in the console and select **New token**. You choose three things.
 
+<Callout type="info" title="Startup plan and up">
+  Creating a token needs Startup, Pro or Enterprise (Starter and the earlier Pro plan keep it too).
+  On Free and Builder it returns `403 automation_requires_startup_plan`. Tokens created before a
+  plan change keep working.
+</Callout>
+
 ### Name
 
 How you will recognise it in six months. `CI pipeline`, `nightly report export` — something that
@@ -29,7 +35,7 @@ What the token may do. Each scope is `resource:action`:
 <TypeTable
   type={{
     "runs:read": { description: "List pentest runs and read their status, trace, and report." },
-    "runs:write": { description: "Start a pentest, and stop a running one. Spends credits." },
+    "runs:write": { description: "Start a pentest, and stop a running one. Uses a pentest from your plan." },
     "findings:read": { description: "List and read findings." },
     "findings:write": { description: "Change a finding's status." },
     "pr_reviews:read": { description: "List and read PR reviews." },
@@ -45,7 +51,7 @@ What the token may do. Each scope is `resource:action`:
     "organization:write": { description: "Update organization profile." },
     "members:read": { description: "List members and pending invites." },
     "members:write": { description: "Invite and remove members." },
-    "billing:read": { description: "Read plan, credit balance, and billing history." },
+    "billing:read": { description: "Read plan, pentests and PR reviews left, and billing history." },
   }}
 />
 
@@ -93,8 +99,8 @@ Some things are console-only, by design:
 - **Managing [webhooks](/api/webhooks).** An endpoint subscribed to finding events is a standing
   feed of your security data to an outside URL.
 - **Anything that spends money directly** — changing a plan, buying credits. Starting a pentest
-  spends credits and *is* available with `runs:write`, because that is the automation people
-  actually need; plan changes are not.
+  uses one from your plan and *is* available with `runs:write`, because that is the automation
+  people actually need; plan changes are not.
 - **The staff portal.** Vulnix staff accounts cannot create API tokens at all.
 
 ## Rate limits

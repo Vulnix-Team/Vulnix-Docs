@@ -3,8 +3,9 @@ title: Runs
 description: Start a pentest, follow it while it executes, and pull its findings, agent trace, and signed report.
 ---
 
-A **run** is one execution of the agent against a [scope](/api/scopes). Starting a run charges
-credits, so this is the resource where getting the preconditions right matters most.
+A **run** is one execution of the agent against a [scope](/api/scopes). Starting a run uses one
+pentest from your plan (or credits, on Starter and the earlier Pro), so this is the resource where
+getting the preconditions right matters most.
 
 ## The run object
 
@@ -86,9 +87,9 @@ Derive the key from the thing that caused the run — a commit SHA, a deploy id,
 from a random value generated at call time, or a retry after a timeout will mint a new key and
 charge you twice.
 
-<Callout type="info" title="Credits are charged before the run starts">
+<Callout type="info" title="The pentest is used before the run starts">
   The charge happens up front, after the checks below pass. A run that is refused for a failed
-  precondition is never charged.
+  precondition is never charged, and a run that fails is given back.
 </Callout>
 
 ### Preconditions
@@ -111,8 +112,11 @@ here.
 </Step>
 
 <Step>
-**The organization must be able to pay.** No active plan or unexpired trial returns
-`credits_exhausted`, with `details.required_usd` and `details.available_usd`.
+**The organization must be able to pay.** No pentests left this month (or, on a `credits` plan,
+not enough credits), or no active subscription, returns `credits_exhausted` with
+`details.required_usd` and `details.available_usd`. On Free, Builder, Startup and Pro,
+`details.unit` is `"pentest"`: read [`pentests.left`](/api/billing#current-status) rather than the
+credit amounts.
 </Step>
 
 </Steps>
@@ -164,12 +168,13 @@ what it was pointed at:
 
 `GET /runs/{run_id}` · scope `runs:read` · role `admin`
 
-The run object, the same `target_summary`, and two fields the list does not carry:
+The run object, the same `target_summary`, and three fields the list does not carry:
 
 <TypeTable
   type={{
     queue_position: { type: "number | null", description: "Place in the global queue. Non-null only while `status` is `queued`; counts down as the queue advances." },
-    credits_charged: { type: "number | null", description: "What this run actually cost you, fixed at launch. Distinct from `cost_usd`, which is measured model spend." },
+    credits_charged: { type: "number | null", description: "What this run actually cost you, fixed at launch, in credits. Distinct from `cost_usd`, which is measured model spend. On `units` plans it is the internal price of one pentest; read `pentests_charged` there." },
+    pentests_charged: { type: "number | null", description: "`1` on Free, Builder, Startup and Pro: every run uses one pentest. Null on `credits` plans." },
   }}
 />
 
@@ -274,8 +279,8 @@ actually needs:
 `POST /runs/{run_id}/stop` · scope `runs:write` · role `admin`
 
 Returns the updated run object. A run already in a terminal status returns
-`409 run_not_stoppable`. Findings produced before the stop are kept, and credits already
-charged are not refunded.
+`409 run_not_stoppable`. Findings produced before the stop are kept, and the pentest (or credits)
+already used is not given back.
 
 ## Live events
 
