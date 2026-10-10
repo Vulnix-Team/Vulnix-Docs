@@ -29,7 +29,7 @@ What the token may do. Each scope is `resource:action`:
 <TypeTable
   type={{
     "runs:read": { description: "List pentest runs and read their status, trace, and report." },
-    "runs:write": { description: "Start a pentest, and stop a running one. Spends credits." },
+    "runs:write": { description: "Start a pentest, and stop a running one. A pentest uses one from the plan." },
     "findings:read": { description: "List and read findings." },
     "findings:write": { description: "Change a finding's status." },
     "pr_reviews:read": { description: "List and read PR reviews." },
@@ -45,7 +45,7 @@ What the token may do. Each scope is `resource:action`:
     "organization:write": { description: "Update organization profile." },
     "members:read": { description: "List members and pending invites." },
     "members:write": { description: "Invite and remove members." },
-    "billing:read": { description: "Read plan, credit balance, and billing history." },
+    "billing:read": { description: "Read the plan, pentests left, and billing history." },
   }}
 />
 
@@ -92,8 +92,8 @@ Some things are console-only, by design:
   permanent one.
 - **Managing [webhooks](/api/webhooks).** An endpoint subscribed to finding events is a standing
   feed of your security data to an outside URL.
-- **Anything that spends money directly** — changing a plan, buying credits. Starting a pentest
-  spends credits and *is* available with `runs:write`, because that is the automation people
+- **Anything that spends money directly** — changing a plan. Starting a pentest uses one of the
+  plan's pentests and *is* available with `runs:write`, because that is the automation people
   actually need; plan changes are not.
 - **The staff portal.** Vulnix staff accounts cannot create API tokens at all.
 

@@ -40,7 +40,7 @@ An organization can have up to **10** endpoints.
   type={{
     "run.started": { description: "A pentest left the queue and began executing." },
     "run.completed": { description: "A pentest finished. Carries the finding count and severity breakdown." },
-    "run.failed": { description: "A pentest could not complete. Its credits were refunded." },
+    "run.failed": { description: "A pentest could not complete. Its pentest was given back." },
     "run.stopped": { description: "A pentest was stopped before finishing." },
     "pr_review.completed": { description: "A PR review reached a verdict: `passed`, `failed`, or `inconclusive`." },
     "finding.status_changed": { description: "A finding moved to a new status." },

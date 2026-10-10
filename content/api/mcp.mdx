@@ -24,7 +24,7 @@ and disconnect under **API → MCP** in the console.
 <Callout type="info" title="Permissions">
   The permissions are the same scopes as [API tokens](/api/authentication). A connection can
   never do more than the person who connected it: if their role changes, the connection changes
-  with it. Permissions that spend credits (starting pentests, re-testing fixes, opening fix PRs)
+  with it. Permissions that use up pentests (starting pentests, re-testing fixes, opening fix PRs)
   are never ticked for you.
 </Callout>
 
@@ -34,7 +34,7 @@ changes something.
 
 ## What an app can do
 
-Every tool maps to an existing API route, with the same rules, limits and trial restrictions.
+Every tool maps to an existing API route, with the same rules, limits and Free-plan restrictions.
 
 | Area | Tools |
 | --- | --- |
@@ -46,7 +46,7 @@ Every tool maps to an existing API route, with the same rules, limits and trial 
 | Knowledge | list, add, edit, delete |
 | Repositories and PR reviews | list and read, PR review settings, PR review findings |
 | Organization | update profile, list members, invite |
-| Billing | plan and credits, plans, credit history |
+| Billing | plan and usage, plans, pentest history |
 | Search | `search` and `fetch` across findings, pentests and domains |
 
 Chat and webhooks are console features and are not available to AI apps.

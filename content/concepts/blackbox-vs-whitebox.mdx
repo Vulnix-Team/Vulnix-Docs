@@ -30,11 +30,11 @@ the agent differently, produce different kinds of findings, and are priced diffe
     },
     price: {
       description: "Starting price",
-      type: "Blackbox: $25 (quick) or $100 (deep) — Whitebox: $150, or $225 with a verified domain also attached",
+      type: "One pentest of your plan, blackbox or whitebox",
     },
     planGating: {
       description: "Plan requirement",
-      type: "Blackbox: available on trial — Whitebox: requires a paid plan",
+      type: "Blackbox and whitebox are both available on every plan, Free included",
     },
   }}
 />
@@ -63,10 +63,7 @@ addresses are rejected when you add the target, and Active Directory is out of s
   the same way — instead it's restricted to public, externally-routable addresses at input time.
 </Callout>
 
-Blackbox scans come in two modes:
-
-- **Quick** — the mode every trial organization's one-time credit grant is sized for exactly.
-- **Deep** — a more thorough pass, available on any paid plan.
+Every blackbox pentest runs at full depth, on every plan.
 
 ## Whitebox
 
@@ -75,9 +72,9 @@ directly — with access to context an external attacker never has, so findings 
 exact file and line, and an eligible finding can get a real GitHub pull request opened against it
 with the fix already applied.
 
-<Callout type="warn" title="Requires a paid plan">
-  Unlike blackbox scanning, Whitebox is never available on the trial plan — see
-  [Billing & Credits](/billing-and-credits) for current pricing.
+<Callout type="info" title="Same price as blackbox">
+  A whitebox pentest uses one pentest from your plan, the same as a blackbox one — see
+  [Billing & Plans](/billing-and-plans).
 </Callout>
 
 A repository can also be enrolled in **automatic PR review** independently of running a full
@@ -87,18 +84,16 @@ works.
 ### Combined targets
 
 A Whitebox scope can also carry a verified domain target. When it does, the agent attacks the
-live target *in addition to* reviewing the source — priced at $225 instead of the source-only
-$150, reflecting the extra work.
+live target *in addition to* reviewing the source. It still counts as one pentest.
 
 ## Which one should I run first?
 
 <Accordions type="single">
   <Accordion title="I have a live app or API, no repo access to give the platform">
-    Start with Blackbox. It needs nothing from you beyond ownership verification, and a quick scan
-    is exactly what your trial credit grant covers.
+    Start with Blackbox. It needs nothing from you beyond ownership verification.
   </Accordion>
   <Accordion title="I want findings that point at exact code, or automated fix PRs">
-    Whitebox. You'll need a paid plan and a connected GitHub repository.
+    Whitebox. You'll need a connected GitHub repository.
   </Accordion>
   <Accordion title="I want both — the live surface and the source">
     Set up Whitebox with a verified domain also attached (the $225 combined price). One scope,

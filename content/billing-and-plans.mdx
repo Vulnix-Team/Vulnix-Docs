@@ -1,0 +1,77 @@
+---
+title: Billing & Plans
+description: Pentests and PR reviews on every plan, what Free includes, and how plan changes work.
+---
+
+Vulnix is sold as two things: **pentests** and **PR reviews**. Every plan includes a number of each
+every month, and there is nothing else to buy on top. You always know what a pentest costs before
+you start it, because it costs one pentest from your plan.
+
+## Plans
+
+<TypeTable
+  type={{
+    free: {
+      description: "One pentest, once, and 5 PR reviews a month. Low and medium findings in full; high and critical findings show as a preview. No card needed, and it never expires.",
+      type: "$0",
+    },
+    builder: {
+      description: "1 pentest and 20 PR reviews a month. Every finding in full, the agent trace and fix pull requests.",
+      type: "$49/mo",
+    },
+    startup: {
+      description: "3 pentests and 50 PR reviews a month, plus scheduled pentests, the API and webhooks.",
+      type: "$99/mo",
+    },
+    pro: {
+      description: "12 pentests and 200 PR reviews a month. Everything in Startup, with priority support.",
+      type: "$299/mo",
+    },
+    enterprise: {
+      description: "Pentest and PR review volume agreed with you, with dedicated onboarding, answers to your security questionnaire and a signed data processing agreement. Arranged with the team, not bought in the console.",
+      type: "Custom",
+    },
+  }}
+/>
+
+## What counts as one
+
+<TypeTable
+  type={{
+    pentest: {
+      description: "Blackbox or whitebox, it counts the same. Every pentest runs at full depth. It is taken from your plan when you launch it, and given back if the run fails. A run you stop yourself is not given back.",
+      type: "1 pentest",
+    },
+    pr_review: {
+      description: "One reviewed pull request. PR reviews are separate from pentests and never use one. When the month's reviews are used, new pull requests are skipped until they renew, and you get a notification.",
+      type: "1 PR review",
+    },
+  }}
+/>
+
+<Callout title="Free">
+  Every new organization starts on Free: one real pentest to see what Vulnix finds on your own
+  product, and 5 PR reviews a month. Free's allowance comes with the workspace you signed up with.
+  A workspace you create later has none until it has a plan.
+</Callout>
+
+## Upgrading plans
+
+Plan changes are upward-only: you can move from Builder to Startup or Pro, but there's no in-app
+downgrade or lateral move. An upgrade takes effect immediately. You are charged a full new billing
+cycle at the new plan's price (no proration), and the new plan's pentests are added to whatever you
+have left.
+
+To go lower, turn auto renewal off in Billing, keep the plan until the period ends, then choose
+the lower plan.
+
+## Startup program codes
+
+Early-stage companies can apply for a code that takes 50% off a plan for 12 months. It works from
+the account that applied, for one workspace. Enter it in Billing before you pick a plan.
+
+## Where to see your usage
+
+`/settings/billing` shows your current plan, the pentests you have left, the PR reviews used this
+month and when they renew. Owners can change the plan, turn auto renewal on or off and open the
+Stripe billing portal; admins can see the same numbers.

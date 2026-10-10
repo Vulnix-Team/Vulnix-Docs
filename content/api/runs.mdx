@@ -3,8 +3,8 @@ title: Runs
 description: Start a pentest, follow it while it executes, and pull its findings, agent trace, and signed report.
 ---
 
-A **run** is one execution of the agent against a [scope](/api/scopes). Starting a run charges
-credits, so this is the resource where getting the preconditions right matters most.
+A **run** is one execution of the agent against a [scope](/api/scopes). Starting a run uses
+one of your pentests, so this is the resource where getting the preconditions right matters most.
 
 ## The run object
 
@@ -16,7 +16,7 @@ credits, so this is the resource where getting the preconditions right matters m
     workflow_id: { type: "string | null", description: "Internal orchestration id. Useful only when quoting a run to support." },
     created_at: { type: "string", description: "ISO 8601." },
     completed_at: { type: "string | null", description: "Set once the run reaches a terminal status." },
-    cost_usd: { type: "number | null", description: "Measured model spend. Null until the run completes. This is not what you were charged — see `credits_charged`." },
+    cost_usd: { type: "number | null", description: "Measured model spend. Null until the run completes. It is not what you pay: a run always uses one pentest — see `pentests_charged`." },
   }}
 />
 
@@ -86,9 +86,9 @@ Derive the key from the thing that caused the run — a commit SHA, a deploy id,
 from a random value generated at call time, or a retry after a timeout will mint a new key and
 charge you twice.
 
-<Callout type="info" title="Credits are charged before the run starts">
-  The charge happens up front, after the checks below pass. A run that is refused for a failed
-  precondition is never charged.
+<Callout type="info" title="The pentest is taken before the run starts">
+  It is taken up front, after the checks below pass. A run that is refused for a failed
+  precondition never uses one.
 </Callout>
 
 ### Preconditions
@@ -111,8 +111,8 @@ here.
 </Step>
 
 <Step>
-**The organization must be able to pay.** No active plan or unexpired trial returns
-`credits_exhausted`, with `details.required_usd` and `details.available_usd`.
+**The organization must be able to pay.** An inactive plan, or no pentests left, returns
+`credits_exhausted` (`details.reason` is `subscription_inactive` when the plan is not active).
 </Step>
 
 </Steps>
@@ -169,7 +169,7 @@ The run object, the same `target_summary`, and two fields the list does not carr
 <TypeTable
   type={{
     queue_position: { type: "number | null", description: "Place in the global queue. Non-null only while `status` is `queued`; counts down as the queue advances." },
-    credits_charged: { type: "number | null", description: "What this run actually cost you, fixed at launch. Distinct from `cost_usd`, which is measured model spend." },
+    pentests_charged: { type: "number", description: "Pentests this run used from your plan: always 1. Distinct from `cost_usd`, which is measured model spend." },
   }}
 />
 
@@ -225,7 +225,7 @@ The tree of agents that worked the run, and what each one did.
     "nodes[].timeline": { type: "array", description: "Messages and tool calls. Empty when locked." },
     "nodes[].message_count": { type: "number", description: "Always accurate, even when locked." },
     "nodes[].tool_call_count": { type: "number", description: "Always accurate, even when locked." },
-    "nodes[].locked": { type: "boolean", description: "Free trial: structure stays, transcript is withheld. Counts stay accurate." },
+    "nodes[].locked": { type: "boolean", description: "Free plan: structure stays, transcript is withheld. Counts stay accurate." },
   }}
 />
 
@@ -250,7 +250,7 @@ curl -L "https://api.vulnix.dev/runs/$RUN_ID/report?format=pdf" \
   -o report.pdf
 ```
 
-An unsupported `format` returns `422 invalid_report_format`. On a free trial, a run containing
+An unsupported `format` returns `422 invalid_report_format`. On the Free plan, a run containing
 any `critical` or `high` finding returns `403 premium_detail_required` for every format,
 including SARIF.
 
@@ -274,8 +274,8 @@ actually needs:
 `POST /runs/{run_id}/stop` · scope `runs:write` · role `admin`
 
 Returns the updated run object. A run already in a terminal status returns
-`409 run_not_stoppable`. Findings produced before the stop are kept, and credits already
-charged are not refunded.
+`409 run_not_stoppable`. Findings produced before the stop are kept, and the pentest it
+used is not given back.
 
 ## Live events
 

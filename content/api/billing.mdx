@@ -1,14 +1,15 @@
 ---
 title: Billing
-description: Read the plan, credit balance, and ledger history — so automation can check it can afford to run before it tries.
+description: Read the plan, pentests left and PR reviews used — so automation can check it can start a run before it tries.
 ---
 
 Billing over the API is **read-only**. There is a `billing:read` scope and no `billing:write`,
 because nothing a token can do should be able to move money.
 
-The reason to reach for these endpoints is the one that matters in CI: checking you can afford
-a run *before* starting one, so a pipeline fails with a clear message instead of a
-`422 credits_exhausted` halfway through.
+The reason to reach for these endpoints is the one that matters in CI: checking you have a
+pentest left *before* starting one, so a pipeline fails with a clear message instead of a
+`422 credits_exhausted` halfway through. (`credits_exhausted` is the error code for "no pentests
+left on the plan", or "the plan is not active".)
 
 ## Plans
 
@@ -20,11 +21,12 @@ Every plan available, not just yours.
 {
   "plans": [
     {
-      "id": "…",
-      "name": "…",
-      "monthly_price_usd": 0,
-      "monthly_credits": 0,
-      "is_self_serve": true
+      "id": "startup",
+      "name": "Startup",
+      "monthly_price_usd": 99,
+      "is_self_serve": true,
+      "monthly_pentests": 3,
+      "monthly_pr_reviews": 50
     }
   ]
 }
@@ -34,9 +36,10 @@ Every plan available, not just yours.
   type={{
     id: { type: "string", description: "Plan identifier." },
     name: { type: "string", description: "Display name." },
-    monthly_price_usd: { type: "number", description: "Recurring price." },
-    monthly_credits: { type: "number", description: "Credits granted each period." },
-    is_self_serve: { type: "boolean", description: "`false` means it is arranged with sales rather than bought in the console." },
+    monthly_price_usd: { type: "number | null", description: "Recurring price." },
+    is_self_serve: { type: "boolean", description: "`false` means it is arranged with the team rather than bought in the console." },
+    monthly_pentests: { type: "number | null", description: "Pentests included each month. Null for Enterprise, where it is agreed per workspace." },
+    monthly_pr_reviews: { type: "number | null", description: "PR reviews included each month. Null for Enterprise." },
   }}
 />
 
@@ -44,7 +47,7 @@ Every plan available, not just yours.
 
 `GET /billing/status` · scope `billing:read` · role `viewer`
 
-The endpoint to poll before spending. Two shapes — check `is_exempt` first.
+The endpoint to poll before starting a run. Two shapes — check `is_exempt` first.
 
 An exempt organization returns exactly this and nothing else:
 
@@ -57,46 +60,41 @@ Everyone else:
 <TypeTable
   type={{
     is_exempt: { type: "boolean", description: "`false` here. When `true`, no other field is present." },
-    plan: { type: "object | null", description: "The current plan object, or null if none." },
-    is_trial: { type: "boolean", description: "Whether this is a free trial. Drives [withheld detail](/api/conventions#withheld-detail-on-the-free-trial)." },
-    trial_ends_at: { type: "string | null", description: "ISO 8601." },
+    plan: { type: "object | null", description: "The current plan object, or null on Free." },
+    is_trial: { type: "boolean", description: "`true` on Free (the name is historical). Drives [withheld detail](/api/conventions#withheld-detail-on-the-free-plan)." },
     subscription_status: { type: "string | null", description: "Subscription state." },
     current_period_start: { type: "string | null", description: "ISO 8601." },
-    current_period_end: { type: "string | null", description: "ISO 8601. When monthly credits refresh." },
+    current_period_end: { type: "string | null", description: "ISO 8601. When the monthly pentests renew." },
     cancel_at_period_end: { type: "boolean", description: "Whether the subscription lapses at period end." },
     grace_period_ends_at: { type: "string | null", description: "Set after a failed payment — work still runs until this passes." },
-    monthly_balance_usd: { type: "number", description: "Plan credits left this period. Spent first, and they do not roll over." },
-    topup_balance_usd: { type: "number", description: "Purchased credits. Spent after monthly credits, and they persist." },
-    credit_balance_usd: { type: "number", description: "The two above added together — the number to compare against a run's price." },
+    monthly_pentests: { type: "number", description: "Pentests the workspace gets each month (Free: 1, once)." },
+    pentests: { type: "{ left: number }", description: "Pentests left. The number to check before starting a run." },
+    pr_reviews: { type: "{ used, included, resets_at }", description: "PR reviews used this month, how many the plan includes, and when the count resets." },
   }}
 />
 
 <Callout type="warn" title="`is_exempt: true` means the other fields are absent, not zero">
   Demo and internal organizations return only `{ "is_exempt": true }`. Code that reads
-  `credit_balance_usd` unconditionally will throw on them. Check `is_exempt` first and treat it
-  as "spending is not limited here".
+  `pentests.left` unconditionally will throw on them. Check `is_exempt` first and treat it as
+  "starting a run is not limited here".
 </Callout>
 
-### Monthly credits are spent before top-up credits
+A plan's monthly pentests renew at `current_period_end` and do not carry over, so a healthy-looking
+`pentests.left` can still be about to reset at the period boundary.
 
-`monthly_balance_usd` resets at `current_period_end` and does not carry over.
-`topup_balance_usd` persists until spent. So a healthy-looking `credit_balance_usd` can still
-be about to shrink at the period boundary — if you are scheduling work near it, read the two
-components, not just the total.
-
-## Ledger history
+## History
 
 `GET /billing/history` · scope `billing:read` · role **`admin`**
 
-Every credit movement, for reconciliation and per-team cost attribution.
+Every movement of pentests, for reconciliation and per-team attribution.
 
 ```json
 {
   "history": [
     {
       "id": "01M2NP…",
-      "delta_usd": -5.0,
-      "balance_after_usd": 95.0,
+      "delta_pentests": -1,
+      "pentests_after": 2,
       "reason": "run_debit",
       "source_type": "run",
       "source_id": "01M2NP4K8QW3ZR7YT2XVB9CDEF",
@@ -108,18 +106,18 @@ Every credit movement, for reconciliation and per-team cost attribution.
 
 <TypeTable
   type={{
-    delta_usd: { type: "number", description: "Negative for a charge, positive for a grant or top-up." },
-    balance_after_usd: { type: "number", description: "Running balance after this entry." },
+    delta_pentests: { type: "number", description: "Negative when a pentest is used, positive for a renewal, a refund or pentests added by support." },
+    pentests_after: { type: "number", description: "Pentests left after this entry." },
     reason: { type: "string", description: "Why it moved — `run_debit` for a pentest, for example." },
     source_type: { type: "string | null", description: "What caused it, such as `run`." },
-    source_id: { type: "string | null", description: "The id of that thing. For a run charge this is the run id — or the `idempotency_key` you supplied when starting it." },
+    source_id: { type: "string | null", description: "The id of that thing. For a run this is the run id — or the `idempotency_key` you supplied when starting it." },
     created_at: { type: "string", description: "ISO 8601." },
   }}
 />
 
 Because `source_id` carries the `idempotency_key` you chose, deriving that key from something
-meaningful — a deploy id, a service name, a team prefix — turns this ledger into a cost
-breakdown you can group without any extra bookkeeping.
+meaningful — a deploy id, a service name, a team prefix — turns this history into a breakdown you
+can group without any extra bookkeeping.
 
 ## Console-only billing endpoints
 
@@ -129,33 +127,26 @@ Anything that moves money is unreachable with a token, whatever scopes it carrie
 <TypeTable
   type={{
     "POST /billing/checkout/subscription": { description: "Start a plan checkout." },
-    "POST /billing/checkout/topup": { description: "Buy additional credits." },
     "POST /billing/portal": { description: "Open the Stripe billing portal." },
     "POST /billing/subscription/auto-renewal": { description: "Turn auto-renewal on or off." },
     "POST /billing/subscription/upgrade": { description: "Change plan." },
   }}
 />
 
-Starting a pentest *does* spend credits and *is* available with `runs:write` — that is the
-automation people actually need, and its cost is bounded and predictable. Changing what you owe
+Starting a pentest *does* use one of your pentests and *is* available with `runs:write` — that is
+the automation people actually need, and its cost is bounded and predictable. Changing what you owe
 every month is not. See
 [what tokens cannot do](/api/authentication#what-tokens-cannot-do).
 
-## Checking affordability before a run
+## Checking before a run
 
 ```bash
-BALANCE=$(curl -fsS https://api.vulnix.dev/billing/status \
+LEFT=$(curl -fsS https://api.vulnix.dev/billing/status \
   -H "Authorization: Bearer $VULNIX_TOKEN" \
-  | jq 'if .is_exempt then 1e9 else .credit_balance_usd end')
+  | jq 'if .is_exempt then 1000000 else .pentests.left end')
 
-ESTIMATE=$(curl -fsS "https://api.vulnix.dev/scopes/$SCOPE_ID" \
-  -H "Authorization: Bearer $VULNIX_TOKEN" | jq '.estimated_cost_usd')
-
-if (( $(echo "$BALANCE < $ESTIMATE" | bc -l) )); then
-  echo "Not enough credits: have $BALANCE, need about $ESTIMATE" >&2
+if [ "$LEFT" -lt 1 ]; then
+  echo "No pentests left on the plan" >&2
   exit 1
 fi
 ```
-
-`estimated_cost_usd` on the [scope](/api/scopes#the-scope-object) is an estimate, not the exact
-charge — leave headroom rather than comparing to the cent.

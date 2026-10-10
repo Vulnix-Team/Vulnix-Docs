@@ -169,7 +169,7 @@ each offending value:
     api_token_scope_missing: { type: "403", description: "Valid token, missing scope. `details.required_scope` names what to tick." },
     insufficient_role: { type: "403", description: "The scope is present but the creator's role is too low for this endpoint." },
     api_token_route_not_allowed: { type: "403", description: "Console-only endpoint. No scope unlocks it." },
-    premium_detail_required: { type: "403", description: "Free trial: the export bundles detail the plan withholds. See below." },
+    premium_detail_required: { type: "403", description: "Free plan: the export bundles detail the plan withholds. See below." },
     rate_limited: { type: "429", description: "Slow down. `Retry-After` says how long." },
   }}
 />
@@ -222,9 +222,9 @@ with `Retry-After` carrying the same number:
 Retry on `Retry-After`, not on a fixed backoff — the header is exact, so sleeping for it wastes
 no time and guarantees the next request lands in a fresh window.
 
-## Withheld detail on the free trial
+## Withheld detail on the Free plan
 
-On a free trial, findings rated `critical` or `high` come back with a reduced shape: `id`,
+On the Free plan, findings rated `critical` or `high` come back with a reduced shape: `id`,
 `run_id`, `domain_id`, `severity`, `status`, `created_at`, and `locked: true`. The title,
 description, CVSS, proof of concept, and remediation steps are omitted rather than blanked.
 

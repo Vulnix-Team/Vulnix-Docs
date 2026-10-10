@@ -37,6 +37,10 @@ const nextConfig: NextConfig = {
   experimental: {
     viewTransition: true,
   },
+  async redirects() {
+    // The page was "Billing & Credits" until 2026-10-10 (credits are no longer sold).
+    return [{ source: "/billing-and-credits", destination: "/billing-and-plans", permanent: true }];
+  },
   async headers() {
     return [
       {
