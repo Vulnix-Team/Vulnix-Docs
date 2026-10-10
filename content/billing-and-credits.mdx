@@ -1,76 +1,131 @@
 ---
-title: Billing & Credits
-description: Prepaid credits, flat per-action pricing, and how the trial works.
+title: Plans & Billing
+description: What each plan includes, how pentests and PR reviews are counted, and how upgrades work.
 ---
 
-Vulnix bills on a credit system, not open-ended usage metering. Every billable action has a
-fixed, upfront price, charged the moment you launch it — never metered by run duration or
-resource consumption, so you always know the cost before you commit to it.
-
-Credits are Vulnix's own unit, not dollars. You buy them with a plan or a top-up, and every
-price below is quoted in credits.
-
-## What each action costs
-
-<TypeTable
-  type={{
-    quick_scan: {
-      description: "Blackbox, quick mode — available on any plan, including trial",
-      type: "25 credits",
-    },
-    deep_scan: {
-      description: "Blackbox, deep mode — available on any plan",
-      type: "100 credits",
-    },
-    whitebox: {
-      description: "Whitebox pentest — requires a paid plan",
-      type: "150 credits",
-    },
-    whitebox_combined: {
-      description: "Whitebox pentest with a verified domain target also attached",
-      type: "225 credits",
-    },
-    pr_review: {
-      description: "Per PR review — available on any plan, including trial",
-      type: "15 credits",
-    },
-  }}
-/>
+Every plan is two allowances: **pentests** and **PR reviews**. You always know what a piece of
+work uses before you start it. A pentest uses one pentest and a PR review uses one PR review. Nothing
+is metered by run time or resource use.
 
 ## Plans
 
 <TypeTable
   type={{
-    starter: {
-      description: "500 credits granted monthly. Self-serve via Stripe Checkout.",
+    free: {
+      description: "1 pentest, once. 5 PR reviews a month. No card required, and it never expires.",
+      type: "$0",
+    },
+    builder: {
+      description: "1 pentest a month. 20 PR reviews a month. Every finding in full, the agent trace, and fix pull requests.",
+      type: "$49/mo",
+    },
+    startup: {
+      description: "3 pentests a month. 50 PR reviews a month. Everything in Builder, plus scheduled pentests, the API and webhooks.",
       type: "$99/mo",
     },
     pro: {
-      description: "2,000 credits granted monthly. Self-serve via Stripe Checkout.",
+      description: "12 pentests a month. 200 PR reviews a month. Everything in Startup, plus priority support.",
       type: "$299/mo",
     },
     enterprise: {
-      description: "Custom pricing and credit grant — staff-provisioned only, no self-serve checkout exists for this plan.",
+      description: "Custom pentest and PR review volume, dedicated onboarding, security questionnaire answers and a signed DPA.",
       type: "Custom",
     },
   }}
 />
 
-<Callout title="Trial">
-  Every new organization gets a one-time 25-credit trial grant — exactly enough for one quick
-  Blackbox scan or PR review, no card required. Whitebox pentesting requires upgrading to a paid
-  plan; PR review works on the trial plan too.
+Builder, Startup and Pro are self-serve through Stripe Checkout. Enterprise is set up with the
+Vulnix team: select **Talk to us** on the pricing page or in the plan picker under
+`/settings/billing`.
+
+## What counts as one pentest
+
+One full-depth pentest of a verified live target ([Blackbox](/concepts/blackbox-vs-whitebox)) or a
+connected repository ([Whitebox](/concepts/blackbox-vs-whitebox#whitebox)), with or without a
+verified domain also attached. They all cost the same: one pentest.
+
+- **Always full depth.** There's no quick mode. Every pentest on every plan, Free included, runs at
+  full depth.
+- **Used at launch.** The pentest is taken the moment the run starts. A run refused because a
+  precondition failed doesn't use one.
+- **Given back if it fails.** A pentest that can't complete is returned to your allowance. One you
+  stop yourself is not.
+
+## PR reviews
+
+PR reviews have their own monthly allowance and never use a pentest. Each pull request reviewed
+uses one. A re-review after new commits counts as another review.
+
+The month is your billing period on a paid plan, and the calendar month on Free. Once the month's
+reviews are used, new pull requests are skipped (not queued) and you get a **PR review skipped**
+notification. Reviews resume when the month resets, or right away if you upgrade.
+
+## The Free plan
+
+Free gives you one full-depth pentest, Blackbox or Whitebox, and 5 PR reviews a month. It doesn't
+expire.
+
+<Callout type="warn" title="What Free holds back">
+  Low and medium findings show in full. Critical and high findings show their severity and count,
+  but their details, the agent trace, and a fix pull request need a paid plan. See
+  [withheld detail](/api/conventions#withheld-detail-on-the-free-trial).
+  [Chat](/chat) also needs a paid plan.
 </Callout>
 
-## Upgrading plans
+## What each plan unlocks
 
-Plan changes are upward-only — you can move from Starter to Pro, but there's no in-app downgrade
-or lateral move. An upgrade takes effect immediately: you're charged for a full new billing
-cycle at the new plan's price (no proration), and your credit grant becomes the new plan's full
-monthly amount right away.
+<TypeTable
+  type={{
+    "Full finding detail, agent trace, fix pull requests": { type: "Builder and up" },
+    "Chat": { type: "Builder and up" },
+    "Scheduled pentests": { type: "Startup and up" },
+    "API tokens and webhook endpoints": { type: "Startup and up" },
+    "Priority support": { type: "Pro and Enterprise" },
+  }}
+/>
+
+On Free or Builder, turning on a schedule returns `403 scheduling_requires_paid_plan`. Creating an
+API token or a webhook endpoint returns `403 automation_requires_startup_plan`. Tokens and endpoints
+created before a plan change keep working.
+
+## Monthly allowances and upgrades
+
+Your pentests and PR reviews renew at the start of each billing month. Unused pentests don't carry
+over to the next month.
+
+You can upgrade at any time from `/settings/billing`. Plan changes are upward-only, with no in-app
+downgrade or lateral move. An upgrade takes effect immediately:
+
+- you're charged the new plan's full price, and a new billing month starts (no proration);
+- you get the new plan's full allowance right away;
+- any pentests you hadn't used yet come with you.
 
 ## Where to see your usage
 
-`/settings/billing` shows your current plan, credit balance, and a full ledger of every
-charge and grant — the same audit trail that backs support's ability to explain exactly what a
-credit balance reflects.
+`/settings/billing` shows your plan, the pentests you have left, the PR reviews used this month
+and when they reset. Over the API, the same numbers are in
+[`GET /billing/status`](/api/billing#current-status).
+
+## Starter and the earlier Pro plan
+
+Organizations already on **Starter** ($99/mo, 500 credits) or the **earlier Pro** plan ($299/mo,
+2,000 credits) keep their plan, price and monthly credits exactly as they were. These plans are no
+longer sold to new customers. Enterprise contracts are also billed in credits unless agreed
+otherwise.
+
+On these plans, each action has a fixed credit price, taken when you launch it:
+
+<TypeTable
+  type={{
+    quick_scan: { description: "Blackbox, quick mode (scopes created before the new pricing)", type: "25 credits" },
+    deep_scan: { description: "Blackbox, deep mode", type: "100 credits" },
+    whitebox: { description: "Whitebox pentest", type: "150 credits" },
+    whitebox_combined: { description: "Whitebox pentest with a verified domain target also attached", type: "225 credits" },
+    pr_review: { description: "Per PR review", type: "15 credits" },
+  }}
+/>
+
+Monthly plan credits are spent first and don't roll over. Top-up credits, which only these plans
+can buy, are spent after them and don't expire. Chat on these plans is charged in credits for
+what the model actually does. To move to one of the new plans, upgrade from `/settings/billing` or
+write to support@vulnix.dev.
