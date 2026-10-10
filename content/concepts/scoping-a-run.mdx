@@ -6,24 +6,12 @@ description: Every option available when configuring a pentest, and what each on
 Scope is defined once when you create it and reused by every run against that target. This page
 covers every option the wizard exposes.
 
-## Scan mode
+## Depth
 
-<TypeTable
-  type={{
-    quick: {
-      description: "A fast, lighter pass. What every trial organization's credit grant covers.",
-      type: "$25",
-    },
-    standard: {
-      description: "A middle-depth pass.",
-      type: "priced as deep",
-    },
-    deep: {
-      description: "The most thorough pass Vulnix runs.",
-      type: "$100",
-    },
-  }}
-/>
+Every pentest runs at full depth (`deep`), on every plan. There's no scan mode to pick, and every
+run uses one pentest. Scopes created before the current plans may still show `quick`; on Starter
+and the earlier Pro plan those keep their old credit price (see
+[Plans & Billing](/billing-and-credits#starter-and-the-earlier-pro-plan)).
 
 ## Narrowing the scope
 
