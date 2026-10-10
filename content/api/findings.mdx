@@ -30,14 +30,14 @@ A **finding** is one issue the agent confirmed. Findings come from a [run](/api/
     created_at: { type: "string", description: "ISO 8601." },
     accepted_risk_at: { type: "string | null", description: "When the risk was formally accepted." },
     accepted_risk_by_user_id: { type: "string | null", description: "Who accepted it." },
-    locked: { type: "boolean", description: "Free trial: `true` means most fields above are omitted. See [withheld detail](/api/conventions#withheld-detail-on-the-free-trial)." },
+    locked: { type: "boolean", description: "Free plan: `true` means most fields above are omitted. See [withheld detail](/api/conventions#withheld-detail-on-the-free-trial)." },
   }}
 />
 
 <Callout type="warn" title="Check `locked` before reading detail">
-  On a free trial, a `critical` or `high` finding arrives with only `id`, `run_id`,
+  On the Free plan, a `critical` or `high` finding arrives with only `id`, `run_id`,
   `domain_id`, `severity`, `status`, `created_at`, and `locked: true`. The other fields are
-  absent, not null. Code that reads `finding.title` unconditionally will break on a trial
+  absent, not null. Code that reads `finding.title` unconditionally will break on a Free
   organization.
 </Callout>
 
