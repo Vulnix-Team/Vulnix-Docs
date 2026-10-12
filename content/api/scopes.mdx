@@ -79,14 +79,18 @@ A summary per scope — enough to pick one without fetching each in full:
       "id": "01M2NMSFVBHZTYR842YNP45TF3",
       "status": "draft",
       "target_count": 1,
-      "all_targets_verified": false
+      "all_targets_verified": false,
+      "scan_type": "blackbox",
+      "created_at": "2026-10-12T06:30:18.641048+00:00",
+      "has_runs": false
     }
   ]
 }
 ```
 
 `all_targets_verified` is the field to check before starting a run — it is precisely the
-condition that otherwise fails with `scope_verification_lost`.
+condition that otherwise fails with `scope_verification_lost`. A scope's `status` stays `draft`
+for life, so `has_runs` is what tells an unfinished draft from a scope that has already run.
 
 ## Targets
 

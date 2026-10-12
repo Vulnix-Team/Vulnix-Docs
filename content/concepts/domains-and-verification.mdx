@@ -20,15 +20,17 @@ be run against it yet.
 
 <Tab value="DNS TXT record">
 
-Add a TXT record with the value Vulnix gives you to your domain's DNS zone, then confirm. Works
-regardless of who hosts your DNS — the most portable option if you're not on Cloudflare or Vercel.
+Add a TXT record with the name and value Vulnix gives you to your domain's DNS zone, then click
+**Check now**. DNS changes usually show up within a few minutes. Works regardless of who hosts
+your DNS — the most portable option if you're not on Cloudflare or Vercel.
 
 </Tab>
 
 <Tab value="Uploaded file">
 
-Upload a file with a specific name and content to your site's root — useful when you control the
-webserver directly but not the DNS zone.
+Upload a file to the address Vulnix shows (`https://<your domain>/.well-known/vulnix-verify-….txt`),
+containing only the token shown. The domain page has the full address, a link to open it and the
+file to download. Useful when you control the webserver directly but not the DNS zone.
 
 </Tab>
 
@@ -46,12 +48,23 @@ markup change without a deploy pipeline.
   domain verifies itself, no manual DNS step at all.
 </Callout>
 
+When your domain's DNS is at Cloudflare or Vercel, the domain page, the welcome tour and the
+pentest wizard all offer **Connect Cloudflare** (or **Connect Vercel**). Approve once on their
+site and you come back to the same place; Vulnix adds the record and checks it. If DNS takes a
+moment to show it, Vulnix keeps checking for a few minutes. Once connected, the same button reads
+**Add record and verify** for every domain in the workspace whose DNS is there.
+
+Connected providers are listed under **Integrations**, where you can disconnect them. Records
+already added stay in your DNS.
+
 </Tab>
 
 </Tabs>
 
 ## After verification
 
+- The domain's page offers **Start a pentest**, which opens the pentest wizard with the domain
+  already in Targets, and **Add a test user**.
 - The domain becomes selectable as a Blackbox target in the pentest wizard.
 - You can optionally save test-user credentials against it for authenticated testing — see
   [Scoping a Run](/concepts/scoping-a-run).
