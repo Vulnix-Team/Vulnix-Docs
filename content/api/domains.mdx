@@ -228,19 +228,27 @@ Connect Vercel or Cloudflare once and Vulnix can create the verification record 
       "connected_by": "01K5ADM…",
       "connected_at": "2026-09-16T17:02:44.118293+00:00"
     }
-  ]
+  ],
+  "available_providers": ["vercel", "cloudflare"]
 }
 ```
+
+`available_providers` lists the providers that can be connected on this deployment. Offer
+one-click setup only for those; for any other provider, publish the TXT record yourself.
 
 ### Connect
 
 `POST /dns-connections/{provider}/start` · scope `domains:write` · role `admin`
 
-`provider` is `vercel` or `cloudflare`; anything else returns `422 unsupported_dns_provider`.
+`provider` is `vercel` or `cloudflare`; anything else, or a provider missing from
+`available_providers`, returns `422 unsupported_dns_provider`.
 
 ```json
-{ "return_to": "https://your-app.example.com/settings" }
+{ "return_to": "settings" }
 ```
+
+`return_to` is optional and opaque: Vulnix stores it in the signed `state` and hands it back,
+unchanged, in the callback's response, so you can tell where the connection started.
 
 ```json
 { "authorize_url": "https://dash.cloudflare.com/oauth2/auth?…" }
@@ -262,8 +270,16 @@ This is an OAuth flow, so it needs a browser — send the user to `authorize_url
 
 Creates the TXT record through the connected provider and immediately re-runs the DNS check —
 one call instead of publish-then-verify. Returns the updated domain object. Failure to write
-the record returns `422 dns_record_creation_failed`; no connection for that provider returns
-`404 dns_provider_connection_not_found`.
+the record returns `422 dns_record_creation_failed`, with a message written for the person who
+asked; no connection for that provider returns `404 dns_provider_connection_not_found`.
+
+- Calling it again is safe: if the record already exists, it is not added twice and the check
+  just runs again.
+- The zone is found from the domain itself, so names under two-part endings such as
+  `shop.example.co.uk` work.
+- A `verification_status` of `pending` in the response means the record was added but DNS
+  doesn't show it yet. Re-check with `POST /domains/{domain_id}/verify` (`{"method": "dns"}`)
+  every few seconds; it usually passes within a minute.
 
 ### Disconnect
 
