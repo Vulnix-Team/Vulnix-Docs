@@ -31,8 +31,8 @@ IDOR", "review this API spec for auth gaps".
 get a plan: what will be tested, how, and against which targets. If it's vague or points
 somewhere outside your verified targets, you get a question instead — and answering it is free.
 
-Nothing has been provisioned at this point. No testing environment exists yet, and **no pentest
-has been used.**
+Nothing has been provisioned at this point. No testing environment exists yet, and nothing has
+been used.
 
 </Step>
 
@@ -47,7 +47,7 @@ the plan you agreed.
 
 <Callout title="Why the extra step">
   A testing environment costs real time to start. Agreeing the work first means you
-  never spend a pentest on a run that was aimed at the wrong thing, and you always know what the agent was
+  never spend usage on a run that was aimed at the wrong thing, and you always know what the agent was
   asked to do before it starts doing it.
 </Callout>
 
@@ -153,9 +153,14 @@ An idle chat costs nothing while it sits there. Resuming one pays a short start-
 
 ## What it uses
 
-Planning is free. **Approving a plan uses one pentest** from your [plan](/billing-and-plans), and
-approving the same plan twice uses one. It is not given back if the testing environment fails. Steers that fit the plan, and resuming an idle chat, use nothing more; a revised plan
-you approve later uses another.
+Chat is its own part of your [plan](/billing-and-plans), separate from pentests: **it never uses a
+pentest.** Each paid plan includes a monthly amount of chat usage, measured by the model work the
+agent does for you: Builder $5 a month, Startup $15, Pro $40, Enterprise as agreed. Planning is
+free; once a plan is approved, everything the agent does counts toward the month's usage.
+
+The sidebar shows how much of the month is used, as a percentage. When it reaches 100%, the
+agent stops at its next step and new messages wait until the usage renews with your billing month,
+or until you upgrade. Usage that isn't used does not carry over.
 
 Chat is available on paid plans. Free workspaces can see the tab but not start a chat.
 

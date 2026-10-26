@@ -16,15 +16,15 @@ you start it, because it costs one pentest from your plan.
       type: "$0",
     },
     builder: {
-      description: "1 pentest and 20 PR reviews a month. Every finding in full, the agent trace and fix pull requests.",
+      description: "1 pentest and 20 PR reviews a month, and $5 of chat usage. Every finding in full, the agent trace and fix pull requests.",
       type: "$49/mo",
     },
     startup: {
-      description: "3 pentests and 50 PR reviews a month, plus scheduled pentests, the API and webhooks.",
+      description: "3 pentests and 50 PR reviews a month, and $15 of chat usage, plus scheduled pentests, the API and webhooks.",
       type: "$99/mo",
     },
     pro: {
-      description: "12 pentests and 200 PR reviews a month. Everything in Startup, with priority support.",
+      description: "12 pentests and 200 PR reviews a month, and $40 of chat usage. Everything in Startup, with priority support.",
       type: "$299/mo",
     },
     enterprise: {
@@ -45,6 +45,10 @@ you start it, because it costs one pentest from your plan.
     pr_review: {
       description: "One reviewed pull request. PR reviews are separate from pentests and never use one. When the month's reviews are used, new pull requests are skipped until they renew, and you get a notification.",
       type: "1 PR review",
+    },
+    chat: {
+      description: "Chat never uses a pentest. Each paid plan includes a monthly amount of chat usage, measured by the model work the agent does (Builder $5, Startup $15, Pro $40). The sidebar shows it as a percentage; at 100% the agent stops and new messages wait for the next billing month or an upgrade. Free has no chat.",
+      type: "Usage",
     },
   }}
 />
