@@ -1753,10 +1753,10 @@
         ]
       }
     },
-    "/domains/{domain_id}/issues": {
+    "/domains/{domain_id}/findings": {
       "get": {
-        "summary": "List Domain Issues",
-        "operationId": "list_domain_issues_domains__domain_id__issues_get",
+        "summary": "List Domain Findings",
+        "operationId": "list_domain_findings_domains__domain_id__findings_get",
         "parameters": [
           {
             "name": "domain_id",
@@ -1776,7 +1776,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response List Domain Issues Domains  Domain Id  Issues Get"
+                  "title": "Response List Domain Findings Domains  Domain Id  Findings Get"
                 }
               }
             }

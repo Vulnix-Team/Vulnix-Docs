@@ -21,7 +21,7 @@ is verified — that proof is what separates a pentest from an attack.
     verification_txt_value: { type: "string | null", description: "TXT record value to publish." },
     verification_file_path: { type: "string | null", description: "Path to serve for file verification." },
     verification_meta_tag: { type: "string | null", description: "Ready-made `<meta>` tag for HTML verification." },
-    issue_count: { type: "number | null", description: "Open findings on this domain. Null where not computed." },
+    finding_count: { type: "number | null", description: "Open findings on this domain. Null where not computed." },
     last_tested_at: { type: "string | null", description: "When a run last covered it." },
   }}
 />
@@ -60,7 +60,7 @@ curl -X POST https://api.vulnix.dev/domains \
   "verification_txt_value": "vulnix-verify=86b64bbb2b229da31a35e9f3f63253b7",
   "verification_file_path": "/.well-known/vulnix-verify-86b64bbb2b229da31a35e9f3f63253b7.txt",
   "verification_meta_tag": "<meta name=\"vulnix-verification\" content=\"86b64bbb2b229da31a35e9f3f63253b7\">",
-  "issue_count": null,
+  "finding_count": null,
   "last_tested_at": null
 }
 ```
@@ -138,10 +138,10 @@ fails fast instead of becoming a target that can never verify.
 
 ## Findings and runs for a domain
 
-`GET /domains/{domain_id}/issues` · scope `domains:read` · role `admin`
+`GET /domains/{domain_id}/findings` · scope `domains:read` · role `admin`
 
 ```json
-{ "issues": [] }
+{ "findings": [] }
 ```
 
 Holds [finding objects](/api/findings#the-finding-object).

@@ -3,7 +3,7 @@ title: Findings
 description: Pull findings, filter them, change their status, re-test a fix, and open a fix PR.
 ---
 
-A **finding** is one issue the agent confirmed. Findings come from a [run](/api/runs) or from a
+A **finding** is one vulnerability the agent confirmed. Findings come from a [run](/api/runs) or from a
 [PR review](/api/pr-reviews) — exactly one of `run_id` or `pr_review_id` is ever set.
 
 ## The finding object
@@ -13,14 +13,14 @@ A **finding** is one issue the agent confirmed. Findings come from a [run](/api/
     id: { type: "string", description: "ULID." },
     run_id: { type: "string | null", description: "Set when the finding came from a pentest run." },
     domain_id: { type: "string | null", description: "The domain it was found on, when it has one." },
-    rule_id: { type: "string | null", description: "Stable identifier for the class of issue. Use this to deduplicate across runs." },
+    rule_id: { type: "string | null", description: "Stable identifier for the class of vulnerability. Use this to deduplicate across runs." },
     title: { type: "string", description: "Short human summary." },
     severity: { type: "string", description: "`critical`, `high`, `medium`, `low`, or `info`." },
     status: { type: "string", description: "`open`, `in_progress`, `snoozed`, `fixed`, or `ignored`." },
-    description: { type: "string", description: "What the issue is and why it matters." },
+    description: { type: "string", description: "What the vulnerability is and why it matters." },
     cvss: { type: "number | null", description: "CVSS base score when one applies." },
     poc_reference: { type: "string | null", description: "Pointer to the stored proof of concept." },
-    affected_asset: { type: "string | null", description: "The URL, endpoint, or file the issue was confirmed on." },
+    affected_asset: { type: "string | null", description: "The URL, endpoint, or file the vulnerability was confirmed on." },
     cwe: { type: "string | null", description: "CWE identifier." },
     cve: { type: "string | null", description: "CVE identifier, for findings that map to a known vulnerability." },
     remediation_steps: { type: "string | null", description: "How to fix it." },
@@ -151,7 +151,7 @@ Returns the updated finding object with `fix_pr_url` populated.
 
 <TypeTable
   type={{
-    finding_has_no_code_fix: { type: "422", description: "No patch was prepared for this finding — it is not a code-level issue, or the agent could not derive one." },
+    finding_has_no_code_fix: { type: "422", description: "No patch was prepared for this finding — it is not a code-level vulnerability, or the agent could not derive one." },
     fix_pull_request_already_exists: { type: "409", description: "A fix PR is already open. Read `fix_pr_url` on the finding." },
     fix_pull_request_creation_failed: { type: "400", description: "GitHub refused the push. Usually a revoked installation or a protected branch." },
   }}
@@ -177,8 +177,8 @@ have to compute them from the raw finding list.
   }}
 />
 
-Returns the security score and its delta, open issues, issues found, fix rate, pentest count, a
-severity breakdown, and the issues-over-time, open-vs-fixed, and MTTR series.
+Returns the security score and its delta, open findings, findings found, fix rate, pentest count, a
+severity breakdown, and the findings-over-time, open-vs-fixed, and MTTR series.
 
 <Callout type="info" title="Cached">
   This response is cached briefly per organization and range, so two calls a second apart can

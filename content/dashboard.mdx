@@ -16,7 +16,7 @@ just a single run.
       description: "A 0–100 gauge with a point-delta trend against the prior period",
       type: "hero widget",
     },
-    issues_over_time: {
+    findings_over_time: {
       description: "Severity-stacked weekly trend, filterable by Pentests / PR Reviews / All",
       type: "chart",
     },
@@ -36,7 +36,7 @@ just a single run.
       description: "Which vulnerability classes show up most often",
       type: "chart",
     },
-    top_issues: {
+    top_findings: {
       description: "Your highest-severity open findings, surfaced first",
       type: "list",
     },
@@ -55,7 +55,7 @@ widgets rather than reconciling mismatched date ranges by hand.
 ## Free workspaces
 
 <Callout type="warn" title="Full detail on critical/high findings requires a paid plan">
-  On a Free workspace, a critical or high severity entry in **Top Issues** or the
+  On a Free workspace, a critical or high severity entry in **Top Findings** or the
   exploitability list shows its severity and status, but the title and CVE are shown as a
   redacted placeholder rather than the real value — this is intentional gating, not a rendering
   issue. Every other widget, and every medium/low/info finding, is shown in full regardless of
