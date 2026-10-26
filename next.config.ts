@@ -34,9 +34,8 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
-  experimental: {
-    viewTransition: true,
-  },
+  // View transitions are on by default since Next 16.3; the old
+  // experimental.viewTransition flag is now a type error.
   async redirects() {
     // The page was "Billing & Credits" until 2026-10-10 (credits are no longer sold).
     return [{ source: "/billing-and-credits", destination: "/billing-and-plans", permanent: true }];
