@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // docs.vulnix.dev on Cloudflare Workers (OpenNext) since 2026-10-26, after
+  // Vercel disabled the deployment. Build: `npm run cf:build`; deploy:
+  // `npm run cf:deploy`. No secrets: this site has no auth.
+  "name": "vulnix-docs",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-20",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "images": { "binding": "IMAGES" },
+  "observability": { "enabled": true },
+  "vars": { "NODE_ENV": "production" }
+}
