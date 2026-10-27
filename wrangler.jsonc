@@ -5,6 +5,9 @@
   // `npm run cf:deploy`. No secrets: this site has no auth.
   "name": "vulnix-docs",
   "main": ".open-next/worker.js",
+  // No workers.dev or preview hostname: only docs.vulnix.dev serves this Worker.
+  "workers_dev": false,
+  "preview_urls": false,
   "compatibility_date": "2026-10-20",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
