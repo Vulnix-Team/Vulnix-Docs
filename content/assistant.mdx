@@ -1,0 +1,34 @@
+---
+title: Ask Vulnix
+description: The assistant beside every page, which answers questions about Vulnix and your workspace and can make changes once you approve them.
+---
+
+**Ask Vulnix** is the button in the header of the portal. It opens an assistant beside the page
+you are on. It is not the pentest agent: that one works on your targets in [Chat](/chat). The
+assistant helps you use Vulnix itself.
+
+## What it can do
+
+- **Answer how-to questions** from this documentation. Each answer lists the pages it used, so you
+  can read further.
+- **Read your workspace**: your domains, repositories, pentests, findings, reports, plan and usage.
+  It sees only what your role can see, and nothing outside your workspace.
+- **Make changes**, such as adding a domain, starting a pentest, changing a finding's status,
+  checking a fix or inviting a teammate. It shows you what it is about to do first (see below).
+
+It answers only questions about Vulnix and your workspace, and it replies in the language you
+write in.
+
+## Nothing changes without your approval
+
+Before any change, the assistant shows a card that says what it will do and with which values.
+Nothing happens until you press **Approve**. **Cancel** leaves everything as it was. If the change
+uses your plan (a pentest, a fix check, a fix pull request) or removes something, the card says so.
+
+Every approved change runs as you, with your role's permissions, and is recorded in your
+workspace's audit log, so an admin can see what was done and by whom.
+
+## Your conversation
+
+The conversation stays in your browser, per workspace. **New conversation** clears it. Each
+workspace can send up to 60 messages an hour to the assistant.
