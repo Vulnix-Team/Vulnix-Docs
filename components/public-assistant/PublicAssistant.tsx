@@ -302,8 +302,12 @@ export function PublicAssistant({ endpoint, site, bookDemoHref, turnstileSiteKey
     if (open) inputRef.current?.focus();
   }, [open]);
 
+  // Saved once an answer has settled, not on every streamed word.
   useEffect(() => {
-    if (restored.current) save(turns, passRef.current);
+    if (restored.current && !busy) save(turns, passRef.current);
+  }, [turns, busy]);
+
+  useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
   }, [turns]);
 
