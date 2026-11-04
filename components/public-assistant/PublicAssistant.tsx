@@ -133,13 +133,28 @@ function Markdown({ text }: { text: string }) {
   let list: { ordered: boolean; items: string[] } | null = null;
   let paragraph: string[] = [];
   const flushParagraph = () => {
-    if (paragraph.length) blocks.push(<p key={`p${blocks.length}`}>{inline(paragraph.join(" "), `p${blocks.length}`)}</p>);
+    if (paragraph.length) blocks.push(<p key={`p${blocks.length}`} dir="auto">{inline(paragraph.join(" "), `p${blocks.length}`)}</p>);
     paragraph = [];
   };
   const flushList = () => {
     if (!list) return;
-    const items = list.items.map((item, i) => <li key={i}>{inline(item, `l${blocks.length}-${i}`)}</li>);
-    blocks.push(list.ordered ? <ol key={`o${blocks.length}`}>{items}</ol> : <ul key={`u${blocks.length}`}>{items}</ul>);
+    const items = list.items.map((item, i) => (
+      <li key={i} dir="auto">
+        {inline(item, `l${blocks.length}-${i}`)}
+      </li>
+    ));
+    // The list's own direction (bullets left or right) follows its first item's language.
+    blocks.push(
+      list.ordered ? (
+        <ol key={`o${blocks.length}`} dir="auto">
+          {items}
+        </ol>
+      ) : (
+        <ul key={`u${blocks.length}`} dir="auto">
+          {items}
+        </ul>
+      ),
+    );
     list = null;
   };
   for (const raw of lines) {
@@ -158,7 +173,11 @@ function Markdown({ text }: { text: string }) {
     } else if (heading) {
       flushParagraph();
       flushList();
-      blocks.push(<p key={`h${blocks.length}`} className="vpa-heading">{inline(heading[1], `h${blocks.length}`)}</p>);
+      blocks.push(
+        <p key={`h${blocks.length}`} className="vpa-heading" dir="auto">
+          {inline(heading[1], `h${blocks.length}`)}
+        </p>,
+      );
     } else if (!line.trim()) {
       flushParagraph();
       flushList();
@@ -169,7 +188,11 @@ function Markdown({ text }: { text: string }) {
   }
   flushParagraph();
   flushList();
-  return <div className="vpa-md">{blocks}</div>;
+  return (
+    <div className="vpa-md" dir="auto">
+      {blocks}
+    </div>
+  );
 }
 
 // ---- icons ----
@@ -218,7 +241,13 @@ export function PublicAssistant({ endpoint, site, bookDemoHref, turnstileSiteKey
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const passRef = useRef<string | null>(null);
+  // Whether a human check is due: no pass yet, or the last one was refused. In state, so the
+  // Turnstile widget renders again after a refusal.
+  const [needsHuman, setNeedsHuman] = useState(true);
   const tokenRef = useRef<string | null>(null);
+  const scriptFailed = useRef(false);
+  const closeTimer = useRef<number | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const widgetRef = useRef<string | null>(null);
   const turnstileBox = useRef<HTMLDivElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -232,7 +261,11 @@ export function PublicAssistant({ endpoint, site, bookDemoHref, turnstileSiteKey
       const saved = load();
       setTurns(saved.turns);
       passRef.current = saved.pass;
+      setNeedsHuman(!saved.pass);
     }
+    // Reopened while it was still closing: keep it.
+    if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
+    closeTimer.current = null;
     setMounted(true);
     window.requestAnimationFrame(() => setOpen(true));
     onEvent?.("opened", { path: window.location.pathname });
@@ -240,8 +273,21 @@ export function PublicAssistant({ endpoint, site, bookDemoHref, turnstileSiteKey
 
   const hide = useCallback(() => {
     setOpen(false);
-    window.setTimeout(() => setMounted(false), CLOSE_MS);
+    // Closing stops the answer, upstream too (the bridge passes the abort on).
+    abortRef.current?.abort();
+    closeTimer.current = window.setTimeout(() => {
+      closeTimer.current = null;
+      setMounted(false);
+    }, CLOSE_MS);
   }, []);
+
+  useEffect(
+    () => () => {
+      abortRef.current?.abort();
+      if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!mounted) return;
@@ -263,7 +309,7 @@ export function PublicAssistant({ endpoint, site, bookDemoHref, turnstileSiteKey
 
   // Turnstile, only while the panel is open and there is no pass yet.
   useEffect(() => {
-    if (!mounted || !turnstileSiteKey || passRef.current) return;
+    if (!mounted || !turnstileSiteKey || !needsHuman) return;
     let cancelled = false;
     const render = () => {
       const api = turnstileApi();
@@ -291,6 +337,9 @@ export function PublicAssistant({ endpoint, site, bookDemoHref, turnstileSiteKey
         document.head.appendChild(script);
       }
       script.addEventListener("load", render);
+      script.addEventListener("error", () => {
+        scriptFailed.current = true;
+      });
     }
     return () => {
       cancelled = true;
@@ -299,20 +348,42 @@ export function PublicAssistant({ endpoint, site, bookDemoHref, turnstileSiteKey
       widgetRef.current = null;
       tokenRef.current = null;
     };
-  }, [mounted, turnstileSiteKey]);
+  }, [mounted, turnstileSiteKey, needsHuman]);
 
   async function humanToken(): Promise<string | null> {
     if (!turnstileSiteKey) return null;
-    for (let i = 0; i < 60 && !tokenRef.current; i++) await new Promise((r) => window.setTimeout(r, 250));
+    for (let i = 0; i < 60 && !tokenRef.current && !scriptFailed.current; i++) {
+      await new Promise((r) => window.setTimeout(r, 250));
+    }
     return tokenRef.current;
   }
 
   function patchLast(update: (turn: Turn) => Turn) {
     setTurns((current) => {
+      // The conversation was cleared meanwhile: nothing to update.
+      if (!current.length || current[current.length - 1].role !== "assistant") return current;
       const next = current.slice();
       next[next.length - 1] = update(next[next.length - 1]);
       return next;
     });
+  }
+
+  function handle(event: Record<string, unknown>) {
+    if (event.type === "pass") {
+      passRef.current = String(event.token);
+      setNeedsHuman(false);
+    } else if (event.type === "text") {
+      patchLast((t) => ({ ...t, content: t.content + String(event.delta ?? ""), searching: false }));
+    } else if (event.type === "tool") {
+      if (event.name === "suggest_demo") patchLast((t) => ({ ...t, demo: true }));
+      else patchLast((t) => ({ ...t, searching: event.status === "running" }));
+    } else if (event.type === "sources") {
+      // The best few: the search returns many candidates, ranked.
+      const items = Array.isArray(event.items) ? (event.items as Source[]) : [];
+      patchLast((t) => ({ ...t, sources: items.slice(0, 4) }));
+    } else if (event.type === "error") {
+      patchLast((t) => ({ ...t, error: String(event.message ?? "Something went wrong.") }));
+    }
   }
 
   async function ask(question: string) {
@@ -323,9 +394,18 @@ export function PublicAssistant({ endpoint, site, bookDemoHref, turnstileSiteKey
     onEvent?.("question_sent", { path: window.location.pathname });
     const history = [...turns, { role: "user" as const, content: text }];
     setTurns([...history, { role: "assistant", content: "", streaming: true }]);
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
       const token = passRef.current ? null : await humanToken();
+      if (!passRef.current && turnstileSiteKey && !token) {
+        // No token came (the check could not load or was not finished): say so now rather
+        // than send a request that can only be refused.
+        patchLast((t) => ({ ...t, streaming: false, error: REFUSALS[403] }));
+        return;
+      }
       const response = await fetch(endpoint, {
+        signal: controller.signal,
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -342,6 +422,7 @@ export function PublicAssistant({ endpoint, site, bookDemoHref, turnstileSiteKey
           tokenRef.current = null;
           const api = turnstileApi();
           if (api && widgetRef.current) api.reset(widgetRef.current);
+          setNeedsHuman(true);
         }
         patchLast((t) => ({ ...t, streaming: false, error: REFUSALS[response.status] ?? "Something went wrong. Try again." }));
         return;
@@ -349,39 +430,34 @@ export function PublicAssistant({ endpoint, site, bookDemoHref, turnstileSiteKey
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
-      for (;;) {
+      for (let finished = false; !finished; ) {
         const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const frames = buffer.split("\n\n");
-        buffer = frames.pop() ?? "";
+        finished = done;
+        buffer += done ? decoder.decode() : decoder.decode(value, { stream: true });
+        const frames = buffer.replace(/\r\n/g, "\n").split("\n\n");
+        // The last piece may be half a frame; at the end of the stream it is a whole one.
+        buffer = done ? "" : (frames.pop() ?? "");
         for (const frame of frames) {
           if (!frame.startsWith("data: ")) continue;
-          const event = JSON.parse(frame.slice(6)) as Record<string, unknown>;
-          if (event.type === "pass") {
-            passRef.current = String(event.token);
-          } else if (event.type === "text") {
-            patchLast((t) => ({ ...t, content: t.content + String(event.delta), searching: false }));
-          } else if (event.type === "tool") {
-            if (event.name === "suggest_demo") patchLast((t) => ({ ...t, demo: true }));
-            else patchLast((t) => ({ ...t, searching: event.status === "running" }));
-          } else if (event.type === "sources") {
-            // The best few: the search returns many candidates, ranked.
-            patchLast((t) => ({ ...t, sources: (event.items as Source[]).slice(0, 4) }));
-          } else if (event.type === "error") {
-            patchLast((t) => ({ ...t, error: String(event.message) }));
+          try {
+            handle(JSON.parse(frame.slice(6)) as Record<string, unknown>);
+          } catch {
+            // A malformed frame is skipped, never fatal to the answer.
           }
         }
       }
       patchLast((t) => ({ ...t, streaming: false, searching: false }));
-    } catch {
-      patchLast((t) => ({ ...t, streaming: false, searching: false, error: "The connection dropped. Try again." }));
+    } catch (error) {
+      const aborted = (error as Error).name === "AbortError";
+      patchLast((t) => ({ ...t, streaming: false, searching: false, error: aborted ? undefined : "The connection dropped. Try again." }));
     } finally {
+      if (abortRef.current === controller) abortRef.current = null;
       setBusy(false);
     }
   }
 
   function reset() {
+    if (busy) abortRef.current?.abort();
     setTurns([]);
     onEvent?.("reset");
     inputRef.current?.focus();
@@ -440,7 +516,7 @@ export function PublicAssistant({ endpoint, site, bookDemoHref, turnstileSiteKey
             ) : (
               turns.map((turn, i) =>
                 turn.role === "user" ? (
-                  <div key={i} className="vpa-user">
+                  <div key={i} className="vpa-user" dir="auto">
                     {turn.content}
                   </div>
                 ) : (
@@ -503,6 +579,7 @@ export function PublicAssistant({ endpoint, site, bookDemoHref, turnstileSiteKey
           >
             <textarea
               ref={inputRef}
+              dir="auto"
               value={draft}
               onChange={(event) => setDraft(event.target.value.slice(0, 2000))}
               onKeyDown={(event) => {
@@ -565,7 +642,8 @@ const STYLES = `
 .vpa-answer{display:flex;flex-direction:column;gap:12px;font-size:14px;line-height:1.65;color:rgb(242 243 238/.9)}
 .vpa-md{display:flex;flex-direction:column;gap:10px;overflow-wrap:anywhere}
 .vpa-md p,.vpa-md ul,.vpa-md ol{margin:0}
-.vpa-md ul,.vpa-md ol{padding-left:18px;display:flex;flex-direction:column;gap:5px}
+.vpa-md p,.vpa-md li{unicode-bidi:plaintext;text-align:start}
+.vpa-md ul,.vpa-md ol{padding-inline-start:18px;display:flex;flex-direction:column;gap:5px}
 .vpa-md li::marker{color:rgb(242 243 238/.4)}
 .vpa-md strong{font-weight:600;color:#f2f3ee}
 .vpa-heading{font-weight:600;color:#f2f3ee}
@@ -579,7 +657,7 @@ const STYLES = `
 .vpa-demo div{display:flex;flex-direction:column;gap:3px}
 .vpa-demo strong{font-size:14px;font-weight:600;color:#f2f3ee}
 .vpa-demo span{font-size:13px;line-height:1.45;color:rgb(242 243 238/.7)}
-.vpa-demo-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;border-radius:999px;background:#fe4202;color:#0c0c0c;font-weight:600;font-size:14px;text-decoration:none;transition:filter .2s}
+.vpa-demo-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;border-radius:999px;background:#fe4202;color:#010101;font-weight:600;font-size:14px;text-decoration:none;transition:filter .2s}
 .vpa-demo-button:hover{filter:brightness(1.08)}
 .vpa-sources{display:flex;flex-wrap:wrap;gap:6px}
 .vpa-error{margin:0;padding:8px 12px;border-radius:10px;background:rgb(239 68 68/.12);color:#fca5a5;font-size:13px}
@@ -588,7 +666,7 @@ const STYLES = `
 .vpa-composer textarea::placeholder{color:rgb(242 243 238/.38)}
 .vpa-composer-foot{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .vpa-composer-foot span{font-size:11.5px;color:rgb(242 243 238/.42)}
-.vpa-send{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:999px;border:0;background:#fe4202;color:#0c0c0c;cursor:pointer;transition:opacity .2s}
+.vpa-send{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:999px;border:0;background:#fe4202;color:#010101;cursor:pointer;transition:opacity .2s}
 .vpa-send:disabled{background:rgb(255 255 255/.1);color:rgb(242 243 238/.4);cursor:default}
 .vpa-turnstile{display:flex;justify-content:center}
 .vpa-turnstile:empty{display:none}

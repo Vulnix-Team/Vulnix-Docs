@@ -22,7 +22,7 @@ function contentSecurityPolicy(): string {
     // Cloudflare Turnstile, for the assistant's human check (components/public-assistant).
     `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com${isDev ? " 'unsafe-eval'" : ""}`,
     "frame-src https://challenges.cloudflare.com",
-    "connect-src 'self'",
+    "connect-src 'self' https://challenges.cloudflare.com",
   ];
   if (!isDev) directives.push("upgrade-insecure-requests");
   return directives.join("; ");
