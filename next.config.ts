@@ -19,7 +19,9 @@ function contentSecurityPolicy(): string {
     "img-src 'self' data: blob:",
     "font-src 'self' data:",
     "style-src 'self' 'unsafe-inline'",
-    `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+    // Cloudflare Turnstile, for the assistant's human check (components/public-assistant).
+    `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com${isDev ? " 'unsafe-eval'" : ""}`,
+    "frame-src https://challenges.cloudflare.com",
     "connect-src 'self'",
   ];
   if (!isDev) directives.push("upgrade-insecure-requests");

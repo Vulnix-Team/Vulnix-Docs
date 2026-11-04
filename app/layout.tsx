@@ -7,6 +7,7 @@ import { ThemeSwitch } from "fumadocs-ui/layouts/shared/slots/theme-switch";
 import { satoshi } from "@/app/fonts/satoshi";
 import { source } from "@/lib/source";
 import { baseOptions } from "@/lib/layout.shared";
+import { DocsAssistant } from "@/components/docs-assistant";
 import { DocsSocialLinks } from "@/components/docs-social-links";
 import { COMPANY_LEGAL_NAME, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
 
@@ -82,6 +83,7 @@ export default function RootLayout({
           >
             {children}
           </DocsLayout>
+          <DocsAssistant />
         </RootProvider>
       </body>
     </html>
