@@ -137,6 +137,35 @@ test accounts to consider.
   }}
 />
 
+### Long text and images
+
+Paste more than a few thousand characters into the message box and it becomes a text file on its own.
+Press the file to bring its text back into the box and edit it; when you click away, it is a file again with
+your changes (or plain text, if you cut it down).
+
+You can also attach **PNG images**: pick them, drop them, or paste a screenshot straight into the box. They
+are sent with your message, shown in the conversation, and placed in the agent's working directory under
+`attachments/`, so they stay in the Files tab and come back when a chat resumes. The agent opens each one
+with its image tool and answers from what it sees; if its model cannot see images it says so instead of
+guessing.
+
+<TypeTable
+  type={{
+    format: {
+      description: "PNG only, checked by the file itself, not its name",
+      type: ".png",
+    },
+    per_message: {
+      description: "How many images one message can carry",
+      type: "5",
+    },
+    size: {
+      description: "Per image",
+      type: "5 MB, up to 8000 pixels on a side",
+    },
+  }}
+/>
+
 Attachments are treated as **material to analyze, never as instructions.** Nothing inside a file
 you upload can change which targets a chat is allowed to reach.
 
