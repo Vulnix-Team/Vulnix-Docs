@@ -2813,7 +2813,7 @@
     "/runs/{run_id}/report": {
       "get": {
         "summary": "Get Run Report",
-        "description": "Story 4.4 AC #1/#2: one canonical Run+Findings projection (AD-10)\nrenders into PDF/DOCX/JSON; SARIF is Vulnix's own emitted file served\nbyte-for-byte from the evidence store (see the story's Scope Note).\nRole gate matches `GET /runs/{run_id}` (`admin`) - see `compare_runs`'s\ncomment for why this isn't the Findings routes' looser `analyst` tier.",
+        "description": "The client report of a run, as a PDF (the only export: DOCX, JSON and SARIF were removed on 2026-11-04).\n`format` is optional and `pdf` is its only value; anything else is a 422 `invalid_report_format`. `baseline` (another run of the\nsame organization) adds a progress section. Role gate matches `GET /runs/{run_id}` (`admin`).",
         "operationId": "get_run_report_runs__run_id__report_get",
         "parameters": [
           {
@@ -2828,19 +2828,32 @@
           {
             "name": "format",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string",
+              "default": "pdf",
               "title": "Format"
+            }
+          },
+          {
+            "name": "baseline",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Baseline"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "The PDF report",
             "content": {
-              "application/json": {
-                "schema": {}
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
           },

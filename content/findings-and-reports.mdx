@@ -85,32 +85,8 @@ already applied — a manual, per-finding action, not automatic.
 
 ## Reports
 
-Every run produces an exportable report from `/reports`, in whichever format fits how you need to
-use it:
-
-<TypeTable
-  type={{
-    pdf: {
-      description: "A shareable, human-readable report — the default for stakeholders.",
-      type: "PDF",
-    },
-    docx: {
-      description: "Editable — for teams that annotate or redistribute reports internally.",
-      type: "DOCX",
-    },
-    json: {
-      description: "The full structured data — for building your own tooling on top.",
-      type: "JSON",
-    },
-    sarif: {
-      description: "Static Analysis Results Interchange Format — feeds directly into a CI pipeline or code-scanning dashboard that already understands SARIF.",
-      type: "SARIF",
-    },
-  }}
-/>
-
-Every format is rendered from the exact same underlying data — a PDF and a SARIF export of the
-same run will never disagree on what was found.
+Every run produces a PDF report you can download from `/reports`: a shareable, human-readable document for
+stakeholders, with the findings, the steps to reproduce each one and how to fix it.
 
 ### Comparing runs over time
 

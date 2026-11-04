@@ -231,18 +231,10 @@ The tree of agents that worked the run, and what each one did.
 
 ## Report
 
-`GET /runs/{run_id}/report?format=…` · scope `runs:read` · role `admin`
+`GET /runs/{run_id}/report` · scope `runs:read` · role `admin`
 
-Returns the file itself, not JSON, with `Content-Disposition: attachment`.
-
-<TypeTable
-  type={{
-    pdf: { type: "application/pdf", description: "The signed, human-readable report." },
-    docx: { type: "…wordprocessingml.document", description: "Same content, editable." },
-    json: { type: "application/json", description: "The full run projection — every finding with full detail." },
-    sarif: { type: "application/sarif+json", description: "For code-scanning tools. Served byte-for-byte as the engine emitted it." },
-  }}
-/>
+Returns the PDF itself, not JSON, with `Content-Disposition: attachment`. The report is a PDF and nothing
+else: `format` is optional and `pdf` is its only value.
 
 ```bash
 curl -L "https://api.vulnix.dev/runs/$RUN_ID/report?format=pdf" \
@@ -250,9 +242,9 @@ curl -L "https://api.vulnix.dev/runs/$RUN_ID/report?format=pdf" \
   -o report.pdf
 ```
 
-An unsupported `format` returns `422 invalid_report_format`. On the Free plan, a run containing
-any `critical` or `high` finding returns `403 premium_detail_required` for every format,
-including SARIF.
+Any `format` other than `pdf` returns `422 invalid_report_format`. On the Free plan, a run containing
+any `critical` or `high` finding returns `403 premium_detail_required`. Exports are limited to 20 per
+workspace in 10 minutes (`429 too_many_report_exports`).
 
 ## Compare two runs
 
