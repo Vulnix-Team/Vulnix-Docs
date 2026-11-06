@@ -1,6 +1,6 @@
 ---
 title: Billing & Plans
-description: Pentests and PR reviews on every plan, what Free includes, and how plan changes work.
+description: Startup, Teams and Enterprise, what each includes, and how plan changes work.
 ---
 
 Vulnix is sold as two things: **pentests** and **PR reviews**. Every plan includes a number of each
@@ -9,26 +9,22 @@ you start it, because it costs one pentest from your plan.
 
 ## Plans
 
+There are three plans and no free plan. Every plan shows every finding in full, with the agent
+trace, the captured network traffic and the files from each pentest, and includes Validate Fix, fix
+pull requests, scheduled pentests, the API, MCP, webhooks, Jira and Slack.
+
 <TypeTable
   type={{
-    free: {
-      description: "One pentest, once, and 5 PR reviews a month. Low and medium findings in full; high and critical findings show as a preview. No card needed, and it never expires.",
-      type: "$0",
-    },
-    builder: {
-      description: "1 pentest and 20 PR reviews a month, and $5 of chat usage. Every finding in full, the agent trace and fix pull requests.",
-      type: "$49/mo",
-    },
     startup: {
-      description: "3 pentests and 50 PR reviews a month, and $15 of chat usage, plus scheduled pentests, the API and webhooks.",
+      description: "1 pentest and 50 PR reviews a month, and $15 of chat usage. $990 a year if you pay yearly. Extra pentests $49 each.",
       type: "$99/mo",
     },
-    pro: {
-      description: "12 pentests and 200 PR reviews a month, and $40 of chat usage. Everything in Startup, with priority support.",
-      type: "$299/mo",
+    teams: {
+      description: "8 pentests and 500 PR reviews a month, and $100 of chat usage. Everything in Startup, plus the merge gate and priority in the queue. $9,990 a year if you pay yearly. Extra pentests $99 each.",
+      type: "$999/mo",
     },
     enterprise: {
-      description: "Pentest and PR review volume agreed with you, with dedicated onboarding, answers to your security questionnaire and a signed data processing agreement. Arranged with the team, not bought in the console.",
+      description: "Pentest and PR review volume agreed with you, with SSO (SAML, OIDC), SCIM provisioning, the workspace audit log, dedicated onboarding, answers to your security questionnaire and a signed data processing agreement. Arranged with the team, not bought in the console.",
       type: "Custom",
     },
   }}
@@ -47,21 +43,21 @@ you start it, because it costs one pentest from your plan.
       type: "1 PR review",
     },
     chat: {
-      description: "Chat never uses a pentest. Each paid plan includes a monthly amount of chat usage, measured by the model work the agent does (Builder $5, Startup $15, Pro $40). The sidebar shows it as a percentage; at 100% the agent stops and new messages wait for the next billing month or an upgrade. Free has no chat.",
+      description: "Chat never uses a pentest. Each plan includes a monthly amount of chat usage, measured by the model work the agent does (Startup $15, Teams $100, Enterprise by contract). The sidebar shows it as a percentage; at 100% the agent stops and new messages wait for the next billing month or an upgrade.",
       type: "Usage",
     },
   }}
 />
 
-<Callout title="Free">
-  Every new organization starts on Free: one real pentest to see what Vulnix finds on your own
-  product, and 5 PR reviews a month. Free's allowance comes with the workspace you signed up with.
-  A workspace you create later has none until it has a plan.
+<Callout title="Choosing a plan">
+  You pick a plan while you set up your workspace, after adding your first target, and pay through
+  Stripe. You can also choose later from Billing; nothing starts until the workspace has a plan.
+  Workspaces from before November 2026 that were on the old Free plan keep their results.
 </Callout>
 
 ## Upgrading plans
 
-Plan changes are upward-only: you can move from Builder to Startup or Pro, but there's no in-app
+Plan changes are upward-only: you can move from Startup to Teams, but there's no in-app
 downgrade or lateral move. An upgrade takes effect immediately. You are charged a full new billing
 cycle at the new plan's price (no proration), and the new plan's pentests are added to whatever you
 have left.
