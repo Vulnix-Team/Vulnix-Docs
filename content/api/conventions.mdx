@@ -190,8 +190,8 @@ Two budgets, counted separately per token:
 
 <TypeTable
   type={{
-    "Standard requests": { type: "120 / minute", description: "Reads and ordinary writes." },
-    "Run-starting requests": { type: "10 / minute", description: "Starting a pentest, re-testing a fix, opening a fix PR." },
+    "Standard requests": { type: "6,000 / minute", description: "Reads and ordinary writes." },
+    "Run-starting requests": { type: "120 / minute", description: "Starting a pentest, re-testing a fix, opening a fix PR." },
   }}
 />
 
@@ -200,8 +200,8 @@ Because they are separate, polling a run's status can never exhaust your ability
 Every response carries the current state of the budget it was counted against:
 
 ```http
-x-ratelimit-limit: 120
-x-ratelimit-remaining: 119
+x-ratelimit-limit: 6000
+x-ratelimit-remaining: 5999
 x-ratelimit-reset: 60
 ```
 
